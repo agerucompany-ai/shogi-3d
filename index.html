@@ -46,6 +46,12 @@
   #banner { position:absolute; inset:0; display:none; align-items:center; justify-content:center; pointer-events:none; }
   #banner .inner { pointer-events:auto; text-align:center; background:rgba(10,12,16,.93); border:2px solid #c9a23a; border-radius:14px; padding:22px 30px; box-shadow:0 10px 40px #000; }
   #banner .big { font-size:30px; font-weight:900; letter-spacing:4px; margin-bottom:8px; }
+  #title { position:absolute; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(8,10,14,.84); }
+  .tcard { text-align:center; background:rgba(16,18,24,.96); border:2px solid #6b5a32; border-radius:16px; padding:28px 26px; max-width:90vw; box-shadow:0 12px 50px #000; }
+  .tlogo { font-size:30px; font-weight:900; letter-spacing:4px; color:#e6d6a4; text-shadow:0 2px 8px #000; }
+  .tsub { font-size:12px; color:#b9ad8e; margin:8px 0 20px; }
+  .btn.big { display:block; width:260px; max-width:80vw; margin:10px auto; padding:13px; font-size:16px; }
+  .tnote { font-size:11px; color:#caa24a; margin-top:12px; min-height:14px; white-space:pre-wrap; }
   #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#cbb87a; font-size:14px; }
 </style>
 </head>
@@ -58,8 +64,18 @@
   <button class="btn you" id="btnFirst">先攻：あなた</button>
   <button class="btn on" id="btnNames">名前</button>
   <button class="btn" id="btnReveal">伏兵</button>
+  <button class="btn" id="btnTitle">タイトル</button>
 </div>
 <div class="hud" id="panel"></div>
+<div id="title">
+  <div class="tcard">
+    <div class="tlogo">地形将棋 <span style="color:#c9a23a">三國</span></div>
+    <div class="tsub">11×11・ランダム地形・城・陣地冊／三國武将で戦う将棋バリアント</div>
+    <button class="btn go big" id="tAI">コンピューターと対戦</button>
+    <button class="btn big" id="tOnline" style="background:#7b4fa0;color:#fff;border-color:#5a3a78">オンライン対戦</button>
+    <div class="tnote" id="tnote"></div>
+  </div>
+</div>
 <div id="banner"><div class="inner"><div class="big" id="bannerBig"></div><div id="bannerSub"></div>
   <button class="btn go" id="btnAgain" style="margin-top:12px;">もう一度</button></div></div>
 
@@ -808,6 +824,14 @@ function layout(){ const panel=document.getElementById('panel'); const ph=panel?
    状態・進行（ShogiAI 準拠）
    ===================================================================================== */
 let state=null, humanFirst=true, handLimit=20, showEnemy=false;
+let undoStack=[], density="normal";
+const KANJI=["一","二","三","四","五","六","七","八","九","十","十一","十二"];
+function squareLabel(r,c){ return (c+1)+(KANJI[N-1-r]||(N-r)); }
+function formatMove(rec,vs){ if(!rec)return ""; const mark=rec.player===0?"▲":"△"; const masked=vs!=null&&rec.player!==vs&&rec.hidden; if(masked){ const f=rec.from?squareLabel(rec.from[0],rec.from[1]):""; return mark+(f?f+"から":"")+"？"; } const sq=squareLabel(rec.to[0],rec.to[1]); const lb=(PIECE[rec.type]&&PIECE[rec.type].label)||"?"; return mark+sq+lb+(rec.promote?"成":"")+(rec.drop?"打":""); }
+function snap(){ return JSON.stringify({board:state.board,walls:state.walls,fences:state.fences,forts:state.forts,hand:state.hand,turn:state.turn,winner:state.winner,phase:state.phase,lastMove:state.lastMove,hist:(state.history||[]).length}); }
+function pushUndo(){ if(!state)return; undoStack.push(snap()); if(undoStack.length>40)undoStack.shift(); }
+function takeback(){ if(!undoStack.length){ setMsg("戻せる手がありません。"); return; } const s=JSON.parse(undoStack.pop()); state.board=s.board; state.walls=s.walls; state.fences=s.fences; state.forts=s.forts; state.hand=s.hand; state.lastMove=s.lastMove; state.history=(state.history||[]).slice(0,s.hist); state.turn=ME; state.winner=null; state.phase="play"; state.selected=null; state.legal=[]; state.dropType=null; if(aiTimer)clearTimeout(aiTimer); syncScene(); buildStructures(); renderHUD(); setMsg("待った：局面を戻しました。"); }
+function changeHandLimit(v){ handLimit=Math.max(10,Math.min(40,v|0)); let sum=reserveLv(); while(sum>handLimit&&reserve.length){ sum-=PIECE[reserve.pop()]?.lv||0; } renderHUD(); }
 const ME=0, AI=1;
 let reserve=[];                       // 選んだ駒（type[]）
 let trayPick=null;                    // 配置中に選択中のアイテム
@@ -815,14 +839,15 @@ const FENCE_MAX=3;
 
 function newTerrain(rebuildReserve){
   seed=(seed*1103515245+12345+Math.floor(performance.now()))>>>0; if(seed===0)seed=20240614;
-  terrain=genTerrain(seed,"normal"); buildWorld(); buildFeatures(); placeCamera();
+  terrain=genTerrain(seed,density); buildWorld(); buildFeatures(); placeCamera();
   if(rebuildReserve) reserve=[];
 }
 function emptyBoard(){ return Array.from({length:N},()=>Array(N).fill(null)); }
 function reserveLv(){ return reserve.reduce((a,t)=>a+(PIECE[t]?.lv||0),0); }
 
 // ---- フェーズ: army ----
-function enterArmy(){ state={phase:"army", board:emptyBoard(), walls:{}, fences:{}, forts:{0:null,1:null}, hand:{0:[],1:[]}, turn:0, winner:null, selected:null, legal:[], dropType:null, lastMove:null, kingPlaced:false, fortPlaced:false };
+function enterArmy(){ state={phase:"army", board:emptyBoard(), walls:{}, fences:{}, forts:{0:null,1:null}, hand:{0:[],1:[]}, turn:0, winner:null, selected:null, legal:[], dropType:null, lastMove:null, kingPlaced:false, fortPlaced:false, history:[] };
+  undoStack=[];
   trayPick=null; updateCastleColors(); syncScene(); renderHUD(); setMsg("使う駒を選びましょう（合計Lv"+handLimit+"・飛角は各1）。"); }
 
 function addReserve(type,lv,max){ if(reserve.filter(t=>t===type).length>=max) return; if(reserveLv()+lv>handLimit){ setMsg("合計Lv"+handLimit+"までです。"); return; } reserve.push(type); renderHUD(); }
@@ -902,12 +927,12 @@ function myCastleBases(side){ const o=[]; for(const k in state.walls){ const w=s
 function canDropHere(side,r,c){ if(state.board[r][c])return false; if(terrain.grid[r][c]===TERRAIN.RIVER)return false;
   for(const [br,bc] of myCastleBases(side)) if(Math.abs(br-r)<=1&&Math.abs(bc-c)<=1)return true; const f=state.forts[side]; if(f&&Math.abs(f[0]-r)<=1&&Math.abs(f[1]-c)<=1)return true; return false; }
 function dropPiece(side,type,r,c){ const hidden=terrain.grid[r][c]===TERRAIN.FOREST; state.board[r][c]={type,player:side,promoted:false,hidden};
-  const h=state.hand[side]; const i=h.indexOf(type); if(i>=0)h.splice(i,1); state.lastMove={from:null,to:[r,c],type,player:side,promote:false,hidden}; state.turn=1-side; }
+  const h=state.hand[side]; const i=h.indexOf(type); if(i>=0)h.splice(i,1); state.lastMove={from:null,to:[r,c],type,player:side,promote:false,drop:true,hidden}; state.turn=1-side; }
 
 function playClick(r,c){ if(state.turn!==ME||state.winner!==null)return; const pc=state.board[r][c];
-  if(state.dropType){ if(canDropHere(ME,r,c)){ dropPiece(ME,state.dropType,r,c); state.dropType=null; afterHuman(); } else setMsg("城・砦の周囲に打てます。"); return; }
+  if(state.dropType){ if(canDropHere(ME,r,c)){ pushUndo(); dropPiece(ME,state.dropType,r,c); state.history.push(state.lastMove); state.dropType=null; afterHuman(); } else setMsg("城・砦の周囲に打てます。"); return; }
   if(state.selected){ const [sr,sc]=state.selected; const tgt=state.legal.find(m=>m.r===r&&m.c===c);
-    if(tgt){ const mv=state.board[sr][sc]; let dp=false; const canP=CAN_PROMOTE.has(mv.type)&&(inPromotionZone(r,ME)||inPromotionZone(sr,ME)); if(canP&&!mustPromote(mv.type,r,ME))dp=confirm("成りますか？（OK=成る／キャンセル=不成）"); executeMove(ME,sr,sc,r,c,dp); state.selected=null; state.legal=[]; afterHuman(); return; }
+    if(tgt){ const mv=state.board[sr][sc]; let dp=false; const canP=CAN_PROMOTE.has(mv.type)&&(inPromotionZone(r,ME)||inPromotionZone(sr,ME)); if(canP&&!mustPromote(mv.type,r,ME))dp=confirm("成りますか？（OK=成る／キャンセル=不成）"); pushUndo(); executeMove(ME,sr,sc,r,c,dp); state.history.push(state.lastMove); state.selected=null; state.legal=[]; afterHuman(); return; }
     if(pc&&pc.player===ME){ select(r,c); return; } state.selected=null; state.legal=[]; syncMarkers(); return; }
   if(pc&&pc.player===ME) select(r,c); }
 function select(r,c){ state.selected=[r,c]; state.legal=legalFor(r,c); state.dropType=null; syncMarkers(); }
@@ -918,7 +943,7 @@ function scheduleAI(){ if(aiTimer)clearTimeout(aiTimer); if(state.phase!=="play"
 function aiMove(){ if(state.phase!=="play"||state.turn!==AI||state.winner!==null)return; let pc=0; for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(state.board[r][c])pc++;
   const depth=pc>26?3:pc>14?4:5; const best=searchBestMoveAdv(state.board,terrain,state.walls,state.fences,fortMap(),state.hand,AI,depth);
   if(!best){ state.winner=ME; state.phase="over"; syncScene(); renderHUD(); endBanner(); return; }
-  executeMove(AI,best.from[0],best.from[1],best.to[0],best.to[1],true); syncScene(); renderHUD(); if(endCheck())return; setMsg("あなたの手番。"); }
+  executeMove(AI,best.from[0],best.from[1],best.to[0],best.to[1],true); state.history.push(state.lastMove); syncScene(); renderHUD(); if(endCheck())return; setMsg("あなたの手番。"); }
 function endCheck(){ if(state.winner!==null){ state.phase="over"; endBanner(); return true; } const mv=allMoves(state.board,terrain,state.turn,state.fences,fortMap()); if(mv.length===0&&state.hand[state.turn].length===0){ state.winner=1-state.turn; state.phase="over"; endBanner(); return true; } return false; }
 
 /* =====================================================================================
@@ -981,6 +1006,7 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
     const r2=el('div','row'); r2.appendChild(el('span','lbl','戦力 Lv '+reserveLv()+' / '+handLimit));
     const g=el('div','gauge'); const gf=el('div','gfill'); const pct=Math.min(100,reserveLv()/handLimit*100); gf.style.width=pct+'%'; gf.style.background=reserveLv()>=handLimit?'linear-gradient(90deg,#2e8b57,#3fb87a)':'linear-gradient(90deg,#c9a24a,#e0b85a)'; g.appendChild(gf); r2.appendChild(g);
     const auto=el('button','btn','地形にあわせて選ぶ'); auto.onclick=autoArmy; r2.appendChild(auto); card.appendChild(r2);
+    const rd=el('div','row'); rd.appendChild(el('span','lbl','森・川:')); for(const a of [['sparse','少'],['normal','普'],['dense','多']]){ const b=el('button','btn'+(density===a[0]?' on':''),a[1]); b.onclick=()=>{ density=a[0]; newTerrain(false); enterArmy(); }; rd.appendChild(b); } rd.appendChild(el('span','lbl','上限Lv:')); for(const v of [10,20,30,40]){ const b=el('button','btn'+(handLimit===v?' on':''),''+v); b.onclick=()=>changeHandLimit(v); rd.appendChild(b); } card.appendChild(rd);
     const r3=el('div','row'); for(const p of PICKABLE){ const cnt=reserve.filter(t=>t===p.type).length; const pk=el('div','pick'); pk.appendChild(el('div','k',PIECE[p.type].label)); pk.appendChild(el('div','lv','Lv'+p.lv)); pk.appendChild(el('div','cnt','×'+cnt)); const pm=el('div','pm'); const mn=el('button',null,'－'); mn.onclick=()=>removeReserve(p.type); const pl=el('button',null,'＋'); pl.onclick=()=>addReserve(p.type,p.lv,p.max); pm.appendChild(mn); pm.appendChild(pl); pk.appendChild(pm); r3.appendChild(pk); } card.appendChild(r3);
     const r4=el('div','row'); const go=el('button','btn go','配置へ進む →'); go.onclick=enterPlacement; r4.appendChild(go); card.appendChild(r4);
   } else if(state.phase==="placement"){
@@ -991,7 +1017,8 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
   } else if(state.phase==="play"||state.phase==="over"){
     const h0=el('div','row scroll'); h0.appendChild(el('span','lbl','敵の持ち駒:')); const hc1=handCounts(state.hand[AI]); if(!hc1.length)h0.appendChild(el('span','koma ai','なし')); for(const [t,nn] of hc1){ const s=el('span','koma ai',PIECE[t].label+'×'+nn); h0.appendChild(s); } card.appendChild(h0);
     const h1=el('div','row scroll'); h1.appendChild(el('span','lbl','あなたの持ち駒（タップで打つ）:')); const hc=handCounts(state.hand[ME]); if(!hc.length)h1.appendChild(el('span','koma ai','なし')); for(const [t,nn] of hc){ const b=el('div','koma'+(state.dropType===t?' sel':''),PIECE[t].label+'×'+nn); b.onclick=()=>{ if(state.turn!==ME||state.phase!=="play")return; state.dropType=state.dropType===t?null:t; state.selected=null; state.legal=[]; renderHUD(); syncMarkers(); }; h1.appendChild(b); } card.appendChild(h1);
-    const r=el('div','row'); const resign=el('button','btn on','投了'); resign.onclick=()=>{ if(state.phase!=="play")return; if(confirm("投了しますか？")){ state.winner=AI; state.phase="over"; renderHUD(); endBanner(); } }; const back=el('button','btn','配置に戻る'); back.onclick=()=>{ enterPlacement(); }; r.appendChild(resign); r.appendChild(back); card.appendChild(r);
+    const rk=el('div','row scroll'); rk.appendChild(el('span','lbl','棋譜:')); const hh=state.history||[]; if(!hh.length)rk.appendChild(el('span','koma ai','—')); for(let i=Math.max(0,hh.length-14);i<hh.length;i++){ rk.appendChild(el('span','koma ai',(i+1)+'. '+formatMove(hh[i],ME))); } card.appendChild(rk);
+    const r=el('div','row'); const mata=el('button','btn','待った'); mata.disabled=!undoStack.length; mata.onclick=()=>{ if(state.phase==="play")takeback(); }; const resign=el('button','btn on','投了'); resign.onclick=()=>{ if(state.phase!=="play")return; if(confirm("投了しますか？")){ state.winner=AI; state.phase="over"; renderHUD(); endBanner(); } }; const back=el('button','btn','配置に戻る'); back.onclick=()=>{ enterPlacement(); }; r.appendChild(mata); r.appendChild(resign); r.appendChild(back); card.appendChild(r);
   }
   const msg=el('div'); msg.id='msg'; const chip=el('span'); chip.id='turnchip'; const txt=el('span'); txt.id='msgtext';
   if(state.phase==="play"||state.phase==="over"){ chip.textContent= state.winner!==null?(state.winner===ME?'勝利':'敗北'):(state.turn===ME?'あなたの番':'敵の番'); chip.style.color=state.turn===ME?'#9ec0ff':'#ff9a86'; } else chip.textContent= state.phase==="army"?'駒選び':'配置';
@@ -1001,6 +1028,11 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
 function endBanner(){ const b=document.getElementById('banner'); b.style.display='flex'; document.getElementById('bannerBig').textContent= state.winner===ME?'勝　利':'敗　北'; document.getElementById('bannerBig').style.color= state.winner===ME?'#cfe3ff':'#ffb0a0'; document.getElementById('bannerSub').textContent= state.winner===ME?'敵の総大将を討ち取った！':'我が総大将、討たれる…'; renderHUD(); }
 
 /* ---- ボタン ---- */
+document.getElementById('tAI').onclick=()=>{ document.getElementById('title').style.display='none'; if(!state||state.phase==='over')enterArmy(); layout(); };
+document.getElementById('tOnline').onclick=()=>{ document.getElementById('tnote').textContent='オンライン対戦は次のアップデートで実装予定です（サーバー準備中）。'; };
+document.getElementById('btnTitle').onclick=()=>{ document.getElementById('title').style.display='flex'; };
+window.__dropTest=function(){ if(!state||state.phase!=='play')return 'notplay'; state.hand[ME].push('G'); for(let r=0;r<N;r++)for(let c=0;c<N;c++){ if(canDropHere(ME,r,c)){ dropPiece(ME,'G',r,c); return {cell:[r,c],placed:!!(state.board[r][c]&&state.board[r][c].type==='G')}; } } return 'nocell'; };
+window.__takeback=function(){ takeback(); return undoStack.length; };
 document.getElementById('btnNew').onclick=()=>{ newTerrain(true); enterArmy(); };
 document.getElementById('btnFirst').onclick=()=>{ humanFirst=!humanFirst; const b=document.getElementById('btnFirst'); b.textContent=humanFirst?'先攻：あなた':'先攻：敵軍'; b.className='btn'+(humanFirst?' you':''); if(state&&state.phase==="army")renderHUD(); };
 document.getElementById('btnNames').onclick=()=>{ SHOW_NAMES=!SHOW_NAMES; document.getElementById('btnNames').classList.toggle('on',SHOW_NAMES); syncScene(); };
@@ -1014,7 +1046,7 @@ featGroup.traverse&&0;
 function animate(t){ requestAnimationFrame(animate); renderer.render(scene,camera); }
 addEventListener('resize',()=>{ layout(); });
 
-seed=20240614; terrain=genTerrain(seed,"normal"); buildWorld(); buildFeatures(); placeCamera();
+seed=20240614; terrain=genTerrain(seed,density); buildWorld(); buildFeatures(); placeCamera();
 enterArmy();
 layout();
 document.getElementById('loading').style.display='none';
