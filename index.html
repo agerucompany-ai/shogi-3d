@@ -68,7 +68,6 @@
   <button class="btn" id="btnNew">新しい地形</button>
   <button class="btn you" id="btnFirst">先攻：あなた</button>
   <button class="btn on" id="btnNames">駒名:表示</button>
-  <button class="btn" id="btnReveal">伏兵</button>
   <button class="btn" id="btnTitle">タイトル</button>
   <button class="btn" id="btnView">視点</button>
   <button class="btn" id="btnRules">ルール</button>
@@ -1397,7 +1396,7 @@ function omakaseArmy(){ reserve=pickArmyForTerrain(terrain,ME,handLimit); render
 let ME=0, OPP=1, online=false, conn=null, peer=null, myReady=false, oppPlace=null, roomCode="";
 let myName="", oppName="", netUndo=[], chatLog=[];
 const WS_URL="wss://terrain-shogi-server.onrender.com";
-let ws=null, srvToken=null, placingLocal=false;
+let ws=null, srvToken=null, placingLocal=false, pendingAction=null, wsTries=0;
 function setSide(s){ ME=s; OPP=1-s; }
 let reserve=[];                       // 選んだ駒（type[]）
 let trayPick=null;                    // 配置中に選択中のアイテム
@@ -1663,22 +1662,22 @@ function rematchOnline(){ var ns=randSeed(); nsend({t:'rematch',seed:ns,density:
 function resetArmyOnline(s,d){ var bn=document.getElementById('banner'); if(bn)bn.style.display='none'; seed=s; density=d||density; terrain=genTerrain(seed,density); buildWorld(); buildFeatures(); myReady=false; oppPlace=null; netUndo=[]; clearSession(); enterArmy(); placeCamera(); layout(); setMsg('新しい地形。布陣してください。'); }
 function sendChatMsg(t){ t=(t||'').trim(); if(!t)return; if(online){ wsend({type:'chat',text:t}); } else { chatLog.push({name:myName||'あなた',text:t}); renderHUD(); } }
 function wsend(o){ try{ if(ws&&ws.readyState===1)ws.send(JSON.stringify(o)); }catch(e){} }
-function wsConnect(cb){ if(ws&&ws.readyState<=1){ if(cb)cb(); return; } try{ ws=new WebSocket(WS_URL); }catch(e){ olStatus('接続失敗'); return; }
-  ws.onopen=function(){ if(srvToken&&roomCode)wsend({type:'resume',code:roomCode,side:ME,token:srvToken}); if(cb)cb(); };
-  ws.onclose=function(){ setTimeout(function(){ if(online)wsConnect(); },3000); };
+function wsConnect(cb){ if(ws&&ws.readyState<=1){ if(cb)cb(); return; } try{ ws=new WebSocket(WS_URL); }catch(e){ olStatus('接続失敗。再試行します…'); setTimeout(function(){ if(online)wsConnect(cb); },3000); return; }
+  ws.onopen=function(){ wsTries=0; if(srvToken&&roomCode)wsend({type:'resume',code:roomCode,side:ME,token:srvToken}); else if(pendingAction)wsend(pendingAction); if(cb)cb(); };
+  ws.onclose=function(){ if(online&&(pendingAction||(srvToken&&roomCode))){ wsTries++; olStatus('サーバー起動待ち…自動で再接続中（'+wsTries+'回目／無料枠は最大1分）'); } setTimeout(function(){ if(online)wsConnect(); },2500); };
   ws.onerror=function(){};
   ws.onmessage=function(e){ var m; try{m=JSON.parse(e.data);}catch(_){return;} onSrv(m); }; }
 function srvReconnect(){ if(online&&(!ws||ws.readyState>1))wsConnect(); }
 function nameVal(){ var e=document.getElementById('olName'); return e?(e.value||'').trim():''; }
-function srvHost(){ myName=nameVal()||'先手'; online=true; setSide(0); clearSession(); olStatus('サーバーに接続中…（無料枠は起動に最大1分）'); wsConnect(function(){ wsend({type:'create',name:myName,density:density,hostSide:0,handLimit:handLimit}); }); }
-function srvJoin(){ myName=nameVal()||'後手'; var code=((document.getElementById('olCode').value)||'').trim(); if(code.length<4){ olStatus('ルームコードを入力してください。'); return; } online=true; roomCode=code; clearSession(); olStatus('接続中…（無料枠は起動に最大1分）'); wsConnect(function(){ wsend({type:'join',code:code,name:myName}); }); }
+function srvHost(){ myName=nameVal()||'先手'; online=true; setSide(0); clearSession(); wsTries=0; pendingAction={type:'create',name:myName,density:density,hostSide:0,handLimit:handLimit}; olStatus('サーバーに接続中…（無料枠は起動に最大1分。自動で待ちます）'); wsConnect(); }
+function srvJoin(){ myName=nameVal()||'後手'; var code=((document.getElementById('olCode').value)||'').trim(); if(code.length<4){ olStatus('ルームコードを入力してください。'); return; } online=true; roomCode=code; clearSession(); wsTries=0; pendingAction={type:'join',code:code,name:myName}; olStatus('接続中…（無料枠は起動に最大1分。自動で待ちます）'); wsConnect(); }
 function resumeServer(){ var o=loadSaved(); if(!o)return; online=true; roomCode=o.code; setSide(o.side); srvToken=o.token; document.getElementById('title').style.display='none'; setMsg('対局に再接続しています…'); wsConnect(); }
-function onSrv(m){ if(m.type==='created'||m.type==='joined'||m.type==='resumed'){ roomCode=m.code; setSide(m.side); srvToken=m.token; saveSession(); if(m.type==='created')olStatus('ルームコード: '+roomCode+'\n相手にコード（または下のURL）を伝えてください。\n'+location.origin+location.pathname+'?room='+roomCode); }
+function onSrv(m){ if(m.type==='created'||m.type==='joined'||m.type==='resumed'){ pendingAction=null; wsTries=0; roomCode=m.code; setSide(m.side); srvToken=m.token; saveSession(); if(m.type==='created')olStatus('ルームコード: '+roomCode+'\n相手にコード（または下のURL）を伝えてください。\n'+location.origin+location.pathname+'?room='+roomCode); }
   else if(m.type==='resume_failed'){ setMsg('対局を復元できませんでした。'); clearSession(); document.getElementById('title').style.display='flex'; }
   else if(m.type==='state'){ onSrvState(m.state); }
   else if(m.type==='placed'){ setMsg('配置を送信しました。相手を待っています…'); }
   else if(m.type==='info'){ setMsg(m.message); }
-  else if(m.type==='error'){ setMsg('⚠ '+m.message); }
+  else if(m.type==='error'){ pendingAction=null; setMsg('⚠ '+m.message); olStatus('⚠ '+m.message+'（コードを確認して、もう一度お試しください）'); }
   else if(m.type==='chat'){ chatLog.push({name:m.name||'相手',text:m.text}); if(chatLog.length>50)chatLog.shift(); if(state&&state.phase)renderHUD(); } }
 function onSrvState(s){ oppName=((s.players||[]).find(function(p){return p.side!==s.yourSide;})||{}).name||'';
   if(seed!==s.seed){ seed=s.seed; density=s.density; terrain=genTerrain(s.seed,s.density); buildWorld(); buildFeatures(); }
@@ -1731,7 +1730,6 @@ window.__takeback=function(){ takeback(); return undoStack.length; };
 document.getElementById('btnNew').onclick=()=>{ if(online){ if(state&&(state.phase==='army'||state.phase==='placement'||state.phase==='lobby'))wsend({type:'reroll',density:density}); else if(state&&state.phase==='over')wsend({type:'rematch'}); else setMsg('対局中は地形を変えられません。'); } else { newTerrain(true); enterArmy(); } };
 document.getElementById('btnFirst').onclick=()=>{ humanFirst=!humanFirst; const b=document.getElementById('btnFirst'); b.textContent=humanFirst?'先攻：あなた':'先攻：敵軍'; b.className='btn'+(humanFirst?' you':''); if(state&&state.phase==="army")renderHUD(); };
 document.getElementById('btnNames').onclick=()=>{ SHOW_NAMES=!SHOW_NAMES; const bn=document.getElementById('btnNames'); bn.classList.toggle('on',SHOW_NAMES); bn.textContent=SHOW_NAMES?'駒名:表示':'駒名:なし'; syncScene(); setMsg(SHOW_NAMES?'駒名を表示します。':'駒名を隠しました（飛車などの文字を非表示）。'); };
-document.getElementById('btnReveal').onclick=()=>{ showEnemy=!showEnemy; document.getElementById('btnReveal').classList.toggle('on',showEnemy); document.getElementById('btnReveal').textContent=showEnemy?'伏兵:表':'伏兵'; syncScene(); buildStructures(); };
 document.getElementById('btnAgain').onclick=()=>{ if(online){ wsend({type:'rematch'}); document.getElementById('banner').style.display='none'; } else { document.getElementById('banner').style.display='none'; newTerrain(true); enterArmy(); } };
 document.getElementById('btnNames').classList.add('on');
 
