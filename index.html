@@ -1432,7 +1432,7 @@ function placementClick(r,c){
   const hasOwn = state.fences[r+'_'+c]===ME || (state.board[r][c]&&state.board[r][c].player===ME) || (state.forts[ME]&&state.forts[ME][0]===r&&state.forts[ME][1]===c);
   // 既に自分の駒/冊/砦があるマス：ダブルタップで取り消し（誤って消さないよう、1回目は確認メッセージ）
   if(hasOwn){
-    if(_placeTap.cell&&_placeTap.cell[0]===r&&_placeTap.cell[1]===c&&(now-_placeTap.t)<450){
+    if(_placeTap.cell&&_placeTap.cell[0]===r&&_placeTap.cell[1]===c&&(now-_placeTap.t)<600){
       _placeTap={cell:null,t:0}; pickUp(r,c); syncScene(); buildStructures(); renderHUD(); setMsg("取り消しました（ダブルタップ）。"); return;
     }
     _placeTap={cell:[r,c],t:now}; setMsg("ここを空けるには、もう一度タップ（ダブルタップ）してください。"); return;
