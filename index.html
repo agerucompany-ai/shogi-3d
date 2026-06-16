@@ -477,7 +477,11 @@ function initHash(S,side){ var hsh=side?Zside:0; for(var r=0;r<N;r++)for(var c=0
 function kingPos(board,p){ for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var pc=board[r][c]; if(pc&&pc.type==="K"&&pc.player===p)return [r,c]; } return null; }
 function evalFast(S,side){ var b=S.board,g=TER.grid,C=(N-1)/2,score=0,mk=null,ok=null;
   for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var pc=b[r][c]; if(pc&&pc.type==="K"){ if(pc.player===side)mk=[r,c]; else ok=[r,c]; } }
-  for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var pc=b[r][c]; if(!pc)continue; var mine=pc.player===side; var v=VALUE[pc.type]||1; var adv=pc.player===0?(N-1-r):r; v+=adv*0.07; v+=(C-Math.abs(c-C))*0.03; if(pc.hidden&&g[r][c]===TERRAIN.FOREST)v+=1.5; if(pc.type!=="K"){ if(mine){ if(ok)v+=6/(3+Math.abs(r-ok[0])+Math.abs(c-ok[1])); } else if(mk)v+=6/(3+Math.abs(r-mk[0])+Math.abs(c-mk[1])); } score+=mine?v:-v; }
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var pc=b[r][c]; if(!pc)continue; var mine=pc.player===side; var v=VALUE[pc.type]||1; var adv=pc.player===0?(N-1-r):r;
+    v+=adv*0.12; v+=(C-Math.abs(c-C))*0.03; if(pc.hidden&&g[r][c]===TERRAIN.FOREST)v+=1.5;
+    var lng=(pc.type==='L'||pc.type==='R'||pc.type==='B'||pc.type==='PR'||pc.type==='PB'); if(lng)v+=adv*0.10; // 香・飛・角は前進して攻める
+    if(pc.type!=="K"){ var ek=mine?ok:mk; if(ek){ var dd=Math.abs(r-ek[0])+Math.abs(c-ek[1]); v+=(lng?11:8)/(3+dd); } } // 敵王へ寄せる
+    score+=mine?v:-v; }
   var h=S.hand; if(h){ var hs=h[side]||[],ho=h[1-side]||[]; for(var i=0;i<hs.length;i++)score+=(VALUE[hs[i]]||1)*0.85; for(var j=0;j<ho.length;j++)score-=(VALUE[ho[j]]||1)*0.85; }
   for(var k in S.walls){ var w=S.walls[k]; if(w.captured)score+=(w.owner===side?1:-1)*60; }
   function ar(kk,o){ if(!kk)return 0; var n2=0; for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var rr=kk[0]+dr,cc=kk[1]+dc; if(rr<0||rr>=N||cc<0||cc>=N)continue; var p=b[rr][cc]; if(p&&p.player===o)n2++; } return n2; }
@@ -554,9 +558,11 @@ function nega(S,toMove,depth,alpha,beta,ply){ NODES++;
   var moves=allMoves(S.board,TER,toMove,S.fences,S.forts); var _dm=dropMoves(S,toMove); if(_dm.length)moves=moves.concat(_dm); if(!moves.length)return -(WIN-ply);
   order(S,moves,toMove,ply,ttm); var opp=toMove===0?1:0, best=-1e9, bestMk=0;
   for(var i=0;i<moves.length;i++){ if(tup())break; var mv=moves[i]; var cap=S.board[mv.to[0]][mv.to[1]]; var tac=(!!cap)||(TER.grid[mv.to[0]][mv.to[1]]===TERRAIN.CASTLE);
+    // 遅い静かな手の枝刈り(LMP)：浅い深さで上位手を読んだ後の静かな遅い手は読まない＝より深く読める
+    if(!tac && best>-1e8 && depth<=3 && i>=(6+depth*4)) continue;
     var u=makeM(S,mv); var s;
     if(u.terminal){ s=WIN-ply; }
-    else { var red=(i>=3&&depth>=3&&!tac)?1:0;
+    else { var red=0; if(i>=3&&depth>=3&&!tac){ red=1; if(i>=8)red=2; if(i>=16&&depth>=5)red=3; }
       s=-nega(S,opp,depth-1-red,-alpha-1,-alpha,ply+1);
       if(s>alpha&&(red>0||(s<beta&&i>0))) s=-nega(S,opp,depth-1,-beta,-alpha,ply+1);
     }
@@ -1266,11 +1272,12 @@ function coordTex(txt){ const cv=document.createElement('canvas'); cv.width=cv.h
   x.clearRect(0,0,128,128); x.font='bold 90px sans-serif'; x.textAlign='center'; x.textBaseline='middle';
   x.lineWidth=12; x.strokeStyle='rgba(245,240,225,0.95)'; x.strokeText(txt,64,70); x.fillStyle='#241a10'; x.fillText(txt,64,70);
   const t=new THREE.CanvasTexture(cv); t.anisotropy=4; return t; }
-function coordSprite(parent,txt,x,z){ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:coordTex(txt),transparent:true,depthTest:false})); const sc=TILE*0.62; sp.scale.set(sc,sc,1); sp.position.set(x,0.1,z); sp.renderOrder=11; parent.add(sp); }
+function coordSprite(parent,txt,x,z){ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:coordTex(txt),transparent:true,depthTest:false})); const sc=TILE*0.62; sp.scale.set(sc,sc,1); sp.position.set(x,0.1,z); sp.renderOrder=11; sp.userData.coord=true; parent.add(sp); }
 function buildCoords(parent){ const off=TILE*0.72;
   for(let c=0;c<N;c++){ coordSprite(parent,String(fileNum(c)),xOf(c),zOf(0)-off); }   // 上＝筋(列番号)
   for(let r=0;r<N;r++){ coordSprite(parent,rankKanji(r),xOf(N-1)+off,zOf(r)); }        // 右＝段
 }
+function rebuildCoords(){ for(let i=groundGroup.children.length-1;i>=0;i--){ const o=groundGroup.children[i]; if(o.userData&&o.userData.coord)groundGroup.remove(o); } buildCoords(groundGroup); }
 
 function buildWorld(){
   while(groundGroup.children.length) groundGroup.remove(groundGroup.children[0]);
@@ -1363,8 +1370,9 @@ let undoStack=[], density="normal";
 let AI_TIME=2500, aiWorker=null, aiBusy=false;
 const KANJI=["一","二","三","四","五","六","七","八","九","十","十一","十二"];
 // 将棋式：筋(列)は右が1、段(行)は上(敵側)が一。右上＝1一。
-function fileNum(c){ return N-c; }
-function rankKanji(r){ return KANJI[r]||String(r+1); }
+function viewSide(){ return online ? ME : (humanFirst ? 0 : 1); }  // 後手視点なら盤の数字を反転
+function fileNum(c){ return viewSide()===0 ? (N-c) : (c+1); }
+function rankKanji(r){ const rr = viewSide()===0 ? r : (N-1-r); return KANJI[rr]||String(rr+1); }
 function squareLabel(r,c){ return fileNum(c)+rankKanji(r); }
 function formatMove(rec,vs){ if(!rec)return ""; const mark=rec.player===0?"▲":"△"; const masked=vs!=null&&rec.player!==vs&&rec.hidden; if(masked){ const f=rec.from?squareLabel(rec.from[0],rec.from[1]):""; return mark+(f?f+"から":"")+"？"; } const sq=squareLabel(rec.to[0],rec.to[1]); const lb=(PIECE[rec.type]&&PIECE[rec.type].label)||"?"; return mark+sq+lb+(rec.promote?"成":"")+(rec.drop?"打":""); }
 function snap(){ return JSON.stringify({board:state.board,walls:state.walls,fences:state.fences,forts:state.forts,hand:state.hand,turn:state.turn,winner:state.winner,phase:state.phase,lastMove:state.lastMove,hist:(state.history||[]).length}); }
@@ -1402,7 +1410,7 @@ function autoArmy(){ reserve=pickArmyForTerrain(terrain,ME,handLimit); renderHUD
 // ---- フェーズ: placement ----
 function enterPlacement(){ if(reserve.length===0){ setMsg("先に駒を選んでください。"); return; }
   state.phase="placement"; state.board=emptyBoard(); state.fences={}; state.forts={0:null,1:null}; state.kingPlaced=false; state.fortPlaced=false; trayPick=null;
-  syncScene(); buildStructures(); renderHUD(); setMsg("配置：下の駒を選んでマスをタップで置く／置いた駒はダブルタップで取り消し。王=自陣の城、陣地冊=最深3行に3つ。"); }
+  rebuildCoords(); syncScene(); buildStructures(); renderHUD(); setMsg("配置：下の駒を選んでマスをタップで置く／置いた駒はダブルタップで取り消し。王=自陣の城、陣地冊=最深3行に3つ。"); }
 
 function placedCounts(){ const m={}; let king=false; for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const pc=state.board[r][c]; if(pc&&pc.player===ME){ if(pc.type==="K")king=true; else m[pc.type]=(m[pc.type]||0)+1; } } return {m,king}; }
 function trayItems(){ const total={}; for(const t of reserve) total[t]=(total[t]||0)+1; const pc=placedCounts(); const order=["R","B","G","S","N","L","P"]; const out=[]; for(const t of order){ const rem=(total[t]||0)-(pc.m[t]||0); if(rem>0) out.push({type:t,count:rem}); } return out; }
