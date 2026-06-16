@@ -485,7 +485,22 @@ function evalFast(S,side){ var b=S.board,g=TER.grid,C=(N-1)/2,score=0,mk=null,ok
   var h=S.hand; if(h){ var hs=h[side]||[],ho=h[1-side]||[]; for(var i=0;i<hs.length;i++)score+=(VALUE[hs[i]]||1)*0.85; for(var j=0;j<ho.length;j++)score-=(VALUE[ho[j]]||1)*0.85; }
   for(var k in S.walls){ var w=S.walls[k]; if(w.captured)score+=(w.owner===side?1:-1)*60; }
   function ar(kk,o){ if(!kk)return 0; var n2=0; for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var rr=kk[0]+dr,cc=kk[1]+dc; if(rr<0||rr>=N||cc<0||cc>=N)continue; var p=b[rr][cc]; if(p&&p.player===o)n2++; } return n2; }
-  score+=ar(mk,side)*3.5; score-=ar(ok,1-side)*3.5; return score; }
+  score+=ar(mk,side)*3.5; score-=ar(ok,1-side)*3.5;
+  // 玉安全：自玉への敵の直線(飛・香)・斜め(角)の利き(開いた筋)を強く減点。守り(柵/味方)で塞いでいれば安全。
+  if(mk)score-=kingDanger(b,mk[0],mk[1],1-side,side===0?-1:1)*16;
+  if(ok)score+=kingDanger(b,ok[0],ok[1],side,(1-side)===0?-1:1)*16;
+  return score; }
+function kingDanger(b,kr,kc,enemy,feDir){ var dng=0; var rays=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+  for(var ri=0;ri<8;ri++){ var dr=rays[ri][0],dc=rays[ri][1];
+    for(var s=1;s<N;s++){ var r=kr+dr*s,c=kc+dc*s; if(r<0||r>=N||c<0||c>=N)break; var p=b[r][c]; if(!p)continue;
+      if(p.player===enemy){ var diag=(dr!==0&&dc!==0);
+        if(!diag&&(p.type==='R'||p.type==='PR'))dng+=1;                 // 飛・竜の直線
+        else if(!diag&&dc===0&&dr===feDir&&p.type==='L')dng+=1;         // 敵香は敵方向の縦筋から
+        else if(diag&&(p.type==='B'||p.type==='PB'))dng+=1;             // 角・馬の斜め
+        if(s===1)dng+=0.4;                                             // 隣接の敵駒は近接脅威
+      }
+      break; } }
+  return dng; }
 function evalStrong(S,side){ var base=evalBoardAdv(S.board,TER,S.walls,S.fences,S.forts,S.hand,side);
   var ok=kingPos(S.board,1-side), mk=kingPos(S.board,side), bonus=0;
   if(ok)for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var pc=S.board[r][c]; if(!pc||pc.player!==side||pc.type==="K")continue; bonus+=6/(3+Math.abs(r-ok[0])+Math.abs(c-ok[1])); }
@@ -558,11 +573,9 @@ function nega(S,toMove,depth,alpha,beta,ply){ NODES++;
   var moves=allMoves(S.board,TER,toMove,S.fences,S.forts); var _dm=dropMoves(S,toMove); if(_dm.length)moves=moves.concat(_dm); if(!moves.length)return -(WIN-ply);
   order(S,moves,toMove,ply,ttm); var opp=toMove===0?1:0, best=-1e9, bestMk=0;
   for(var i=0;i<moves.length;i++){ if(tup())break; var mv=moves[i]; var cap=S.board[mv.to[0]][mv.to[1]]; var tac=(!!cap)||(TER.grid[mv.to[0]][mv.to[1]]===TERRAIN.CASTLE);
-    // 遅い静かな手の枝刈り(LMP)：浅い深さで上位手を読んだ後の静かな遅い手は読まない＝より深く読める
-    if(!tac && best>-1e8 && depth<=3 && i>=(6+depth*4)) continue;
     var u=makeM(S,mv); var s;
     if(u.terminal){ s=WIN-ply; }
-    else { var red=0; if(i>=3&&depth>=3&&!tac){ red=1; if(i>=8)red=2; if(i>=16&&depth>=5)red=3; }
+    else { var red=0; if(i>=4&&depth>=3&&!tac){ red=1; if(i>=12&&depth>=4)red=2; } // 守りを刈らないよう控えめなLMRのみ
       s=-nega(S,opp,depth-1-red,-alpha-1,-alpha,ply+1);
       if(s>alpha&&(red>0||(s<beta&&i>0))) s=-nega(S,opp,depth-1,-beta,-alpha,ply+1);
     }
@@ -1525,7 +1538,7 @@ function pieceTex(url,flip){ const k=url+(flip?'#f':''); if(_ptex[k])return _pte
   const t=new THREE.TextureLoader().load((typeof PIECE_IMG!=="undefined"&&PIECE_IMG[url])||url); t.encoding=THREE.sRGBEncoding; t.anisotropy=4;
   if(flip){ t.wrapS=THREE.RepeatWrapping; t.repeat.x=-1; t.offset.x=1; } _ptex[k]=t; return t; }
 function pieceURL(type,player){ const side=player===ME?'you':'ai'; const goldLike={PS:'G',PN:'G',PL:'G',PP:'G'}; let key=goldLike[type]||type; return side+'_'+key; }
-function makePiece(type,player,promoted){ const root=new THREE.Group(); const tm=TEAM[player];
+function makePiece(type,player,promoted){ const root=new THREE.Group(); const tm=TEAM[player]||TEAM[1];
   cyl(root,TILE*0.34,TILE*0.4,0.05,0x14141a,{y:0.025,mat:{roughness:1,metalness:0}});
   { const tr=new THREE.Mesh(new THREE.TorusGeometry(TILE*0.38,0.05,8,24), mat(tm.glow,{emissive:tm.glow,emissiveIntensity:0.6,roughness:0.5,metalness:0})); tr.position.y=0.05; tr.rotation.x=Math.PI/2; root.add(tr); }
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:pieceTex(pieceURL(type,player),player===OPP),transparent:true,depthWrite:false}));
