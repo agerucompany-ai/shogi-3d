@@ -87,6 +87,14 @@
   .rcard { position:relative; max-width:560px; max-height:84vh; overflow-y:auto; background:linear-gradient(180deg,#1d1612,#110d0a); border:1px solid var(--gold2); outline:1px solid rgba(216,180,97,.28); outline-offset:4px; border-radius:6px; padding:18px 22px; font-size:13px; line-height:1.75; color:#e2d7bd; }
   .rcard h3 { margin:0 0 6px; color:var(--gold); font-size:18px; letter-spacing:3px; font-family:'Yu Mincho','Hiragino Mincho ProN',serif; }
   .rcard h4 { margin:13px 0 3px; font-size:14px; }
+  #cloud { position:absolute; inset:0; z-index:60; display:none; align-items:center; justify-content:center; background:rgba(8,6,4,.88); }
+  #cloud .rcard { width:380px; max-width:92vw; box-sizing:border-box; text-align:center; }
+  #cloud input { padding:9px; border-radius:5px; border:1px solid var(--gold2); background:var(--lac2); color:var(--paper); font-weight:800; text-align:center; font-size:15px; letter-spacing:2px; min-width:0; }
+  .cldbox { background:#120e0b; border:1px solid var(--gold2); border-radius:6px; padding:12px; margin:10px 0; }
+  .cldk { font-size:11px; font-weight:800; color:var(--gold); letter-spacing:1px; margin-right:8px; }
+  .cldv { font-size:22px; font-weight:900; color:var(--gold3); letter-spacing:2px; font-family:Consolas,'Courier New',monospace; }
+  .cldsec { font-size:12px; font-weight:800; color:var(--gold); letter-spacing:2px; margin:16px 0 8px; border-top:1px solid rgba(154,122,58,.45); padding-top:12px; }
+  #cldMsg.err { color:#e57b70; }
   .rclose { position:absolute; top:8px; right:14px; cursor:pointer; font-size:20px; color:var(--gold); pointer-events:auto; }
   #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:14px; letter-spacing:2px; }
   @media (max-width:640px){ #chatpanel { width:84vw; } .btn { padding:5px 7px; font-size:11px; } #panel { max-height:38vh; } .tlogo { font-size:38px; } #top { flex-wrap:wrap; white-space:normal; gap:4px; padding:5px 6px; } #top .title { font-size:13px; } }
@@ -115,10 +123,11 @@
 <div id="title">
   <div class="tcard">
     <div class="tlogo">地形将棋<span class="seal">三國</span></div>
-    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-21-ai-train</span></div>
+    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-21-cloud</span></div>
     <button class="btn go big" id="tAI">コンピューターと対戦</button>
     <button class="btn big" id="tOnline" style="background:linear-gradient(180deg,#6f4a9a,#4b2f6e);color:#fff;border-color:#b797e0">オンライン対戦</button>
     <button class="btn big" id="tRules">ルール</button>
+    <button class="btn big" id="tCloud">☁ データ引き継ぎ</button>
     <button class="btn" id="tExport" style="font-size:11px;margin-top:4px">学習データ書き出し（<span id="tTrainN">0</span>局）</button>
     <div class="tnote" id="tnote"></div>
     <div id="online" style="display:none;margin-top:14px;border-top:1px solid var(--gold2);padding-top:14px">
@@ -136,6 +145,23 @@
     </div>
   </div>
 </div>
+<div id="cloud"><div class="rcard"><div class="rclose" id="cldClose">✕</div>
+<h3>☁ データ引き継ぎ</h3>
+<div id="cldMine" class="cldbox" style="display:none">
+  <div><span class="cldk">ID</span><span class="cldv" id="cldIdView"></span></div>
+  <div style="margin-top:4px"><span class="cldk">PIN</span><span class="cldv" id="cldPinView"></span></div>
+  <div id="cldLast" style="margin:8px 0 2px;font-size:11px;color:var(--mute)"></div>
+  <button class="btn go big" id="cldPush">今すぐ保存</button>
+</div>
+<button class="btn go big" id="cldNew">IDを発行して保存を始める</button>
+<div class="cldsec">別の端末からログイン</div>
+<div style="display:flex;gap:6px;justify-content:center">
+  <input id="cldIdIn" placeholder="ID" maxlength="9" autocapitalize="characters" autocomplete="off" style="flex:2;text-transform:uppercase">
+  <input id="cldPinIn" placeholder="PIN" maxlength="4" inputmode="numeric" autocomplete="off" style="flex:1;max-width:90px">
+</div>
+<button class="btn big" id="cldPull">ログイン</button>
+<div class="tnote" id="cldMsg"></div>
+</div></div>
 <div id="rules"><div class="rcard"><div class="rclose" id="rClose">✕</div>
 <h3>ルール・コツ</h3>
 <div id="rulesDyn"></div>
@@ -2153,7 +2179,7 @@ function glogEnd(){ if(!GLOG||GLOG.saved||state.winner===null)return; GLOG.saved
   try{ uploadGame(GLOG); }catch(_){}   // 終局ごとに自動でサーバへ送信（オフライン/オンライン両方）
   try{ var arr=[]; try{ arr=JSON.parse(localStorage.getItem('tshogi_train')||'[]'); }catch(_){ arr=[]; } arr.push(GLOG);
     var saved=false; for(var lim=120; lim>=1 && !saved; lim=Math.floor(lim/2)){ while(arr.length>lim)arr.shift(); try{ localStorage.setItem('tshogi_train',JSON.stringify(arr)); saved=true; }catch(qe){} }
-    window.__lastTrainN=arr.length; var ne=document.getElementById('tTrainN'); if(ne)ne.textContent=arr.length;
+    window.__lastTrainN=arr.length; try{ cloudSoon(4000); }catch(_){} var ne=document.getElementById('tTrainN'); if(ne)ne.textContent=arr.length;
     try{ setMsg(saved?('学習データに記録しました（計'+arr.length+'局）。タイトルの「学習データ書き出し」で保存できます。'):'記録に失敗（保存容量オーバー）。'); }catch(_){}
   }catch(e){ try{ setMsg('記録エラー: '+e); }catch(_){} } }
 function exportTrain(){ try{ var data=localStorage.getItem('tshogi_train')||'[]'; var n=JSON.parse(data).length; var blob=new Blob([data],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='tshogi_train.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(url);},1000); setMsg('学習データを書き出しました（'+n+'局）。ファイルを渡してくれれば評価を学習します。'); }catch(e){ setMsg('書き出し失敗:'+e); } }
@@ -2260,10 +2286,79 @@ function loadScenario(sc){ mapType='scenario'; scenario=sc; scenario._playerSide
 /* ===== プレイヤー登録＆クリア進捗（端末ローカル localStorage） ===== */
 function loadProf(){ try{ const p=JSON.parse(localStorage.getItem('shogi_prof')||'null'); if(p&&typeof p==='object')return {name:p.name||'',cleared:p.cleared||{}}; }catch(e){} return {name:'',cleared:{}}; }
 let PROF=loadProf();
-function saveProf(){ try{ localStorage.setItem('shogi_prof',JSON.stringify(PROF)); }catch(e){} }
+function saveProf(){ try{ localStorage.setItem('shogi_prof',JSON.stringify(PROF)); }catch(e){} try{ cloudSoon(1500); }catch(e){} }
 function scenCleared(key,side){ const c=PROF.cleared[key]; if(!c)return false; return side===undefined?!!(c[0]||c[1]):!!c[side]; }
 function markScenCleared(key,side){ if(!key)return; if(!PROF.cleared[key])PROF.cleared[key]={}; PROF.cleared[key][side]=true; saveProf(); }
 function registerName(){ const n=(prompt('プレイヤー名を登録（クリア進捗の保存に使います）',PROF.name||'')||'').trim(); if(n){ PROF.name=n; saveProf(); if(typeof state!=='undefined'&&state)renderHUD(); } return PROF.name; }
+/* ===== データ引き継ぎ（ID＋PIN・サーバー /api/cloud → Neon） ===== */
+const CLOUD_KEY='tshogi_cloud', CLOUD_TRAIN_BUDGET=300*1024, CLOUD_COACH_MAX=300, CLOUD_AUTO_MS=45000;
+function cloudGet(){ try{ const c=JSON.parse(localStorage.getItem(CLOUD_KEY)||'null'); return (c&&c.id&&c.pin)?c:null; }catch(e){ return null; } }
+function cloudSet(c){ try{ if(c)localStorage.setItem(CLOUD_KEY,JSON.stringify(c)); else localStorage.removeItem(CLOUD_KEY); }catch(e){} }
+function cloudApi(){ let a=''; try{ a=new URLSearchParams(location.search).get('api')||''; }catch(e){} return (a||WS_URL.replace(/^wss:/,'https:').replace(/^ws:/,'http:')).replace(/\/$/,''); }
+async function cloudReq(method,path,body,ms){ const ac=new AbortController(); const tm=setTimeout(()=>ac.abort(),ms||75000);
+  try{ const r=await fetch(cloudApi()+path,{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,signal:ac.signal,cache:'no-store'});
+    const d=await r.json().catch(()=>({})); if(!r.ok||d.error){ const e=new Error(d.error||('HTTP '+r.status)); e.code=d.error||('http'+r.status); e.d=d; throw e; } return d; }
+  catch(e){ if(e.name==='AbortError'){ const t=new Error('timeout'); t.code='timeout'; throw t; } if(!e.code){ e.code='net'; } throw e; }
+  finally{ clearTimeout(tm); } }
+function cloudErr(e){ const d=(e&&e.d)||{}; switch(e&&e.code){
+  case 'bad_pin': return d.left===0?'ロック中（約15分）':'PINが違います'+(d.left!=null?'（残り'+d.left+'回）':'');
+  case 'locked': return 'ロック中（約'+Math.max(1,Math.ceil((d.retryAfter||900)/60))+'分）';
+  case 'no_id': return 'IDが見つかりません';
+  case 'no_data': return '保存データがありません';
+  case 'too_soon': case 'rate': return '少し待ってから再試行してください';
+  case 'too_large': return 'データが大きすぎます';
+  case 'disabled': return 'サーバー未設定';
+  case 'timeout': case 'net': return 'サーバーに接続できません（起動中の場合は少し待って再試行）';
+  default: return 'エラー（'+((e&&e.message)||'?')+'）'; } }
+function cloudPayload(){ let train=[], coach=[];
+  try{ coach=JSON.parse(localStorage.getItem('tshogi_coach')||'[]'); }catch(e){} if(!Array.isArray(coach))coach=[]; coach=coach.slice(-CLOUD_COACH_MAX);
+  try{ const all=JSON.parse(localStorage.getItem('tshogi_train')||'[]'); let used=0; for(let i=all.length-1;i>=0;i--){ const n=JSON.stringify(all[i]).length; if(used+n>CLOUD_TRAIN_BUDGET)break; used+=n; train.unshift(all[i]); } }catch(e){}
+  return {v:1,app:'tshogi3d',ts:Date.now(),prof:{name:PROF.name||'',cleared:PROF.cleared||{}},coach,train}; }
+function cloudApply(d){ if(!d||d.app!=='tshogi3d'||!d.prof||typeof d.prof!=='object')throw Object.assign(new Error('bad'),{code:'bad_data'});
+  PROF={name:String(d.prof.name||''),cleared:(d.prof.cleared&&typeof d.prof.cleared==='object')?d.prof.cleared:{}};
+  try{ localStorage.setItem('shogi_prof',JSON.stringify(PROF)); }catch(e){}
+  try{ localStorage.setItem('tshogi_coach',JSON.stringify(Array.isArray(d.coach)?d.coach:[])); }catch(e){}
+  try{ localStorage.setItem('tshogi_train',JSON.stringify(Array.isArray(d.train)?d.train:[])); }catch(e){}
+  try{ localStorage.setItem('tshogi_up_v1','1'); }catch(e){}   // 引き継いだ学習データをサーバーへ再送しない
+  try{ const ne=document.getElementById('tTrainN'); if(ne)ne.textContent=(Array.isArray(d.train)?d.train.length:0); }catch(e){}
+  try{ if(typeof state!=='undefined'&&state)renderHUD(); }catch(e){} }
+let _cldTimer=null, _cldBusy=false, _cldDirty=false, _cldRetry=0;
+function cloudSoon(ms){ if(!cloudGet())return; _cldDirty=true; if(_cldTimer)clearTimeout(_cldTimer); _cldTimer=setTimeout(()=>{ _cldTimer=null; cloudPush(true); }, ms==null?CLOUD_AUTO_MS:ms); }
+async function cloudPush(silent){ const c=cloudGet(); if(!c)return false; if(_cldBusy){ _cldDirty=true; return false; }
+  _cldBusy=true; _cldDirty=false; let ok=false;
+  try{ await cloudReq('PUT','/api/cloud/'+encodeURIComponent(c.id),{pin:c.pin,data:cloudPayload()}); const c2=cloudGet(); if(c2&&c2.id===c.id){ c2.last=Date.now(); cloudSet(c2); } ok=true; if(!silent)cloudMsg('保存しました'); }
+  catch(e){ const ra=(e.d&&e.d.retryAfter)||0; const retry=['too_soon','rate','timeout','net','server','http502','http503','http504'].includes(e.code);
+    if(retry)_cldRetry=Math.max(ra*1000+500, e.code==='too_soon'?1000:30000); if(!silent)cloudMsg(e.code==='too_soon'?'保存待ち…':cloudErr(e), e.code!=='too_soon'); }
+  finally{ _cldBusy=false; cloudRender(); if(_cldRetry){ const w=_cldRetry; _cldRetry=0; cloudSoon(w); } else if(_cldDirty&&!_cldTimer)cloudSoon(CLOUD_AUTO_MS); }
+  return ok; }
+function cloudMsg(t,err){ const m=document.getElementById('cldMsg'); if(!m)return; m.textContent=t||''; m.className='tnote'+(err?' err':''); }
+function cloudRender(){ const c=cloudGet(); const mine=document.getElementById('cldMine'); if(!mine)return;
+  mine.style.display=c?'block':'none'; document.getElementById('cldNew').style.display=c?'none':'block';
+  if(c){ document.getElementById('cldIdView').textContent=c.id; document.getElementById('cldPinView').textContent=c.pin;
+    document.getElementById('cldLast').textContent=c.last?('最終保存 '+new Date(c.last).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})):'未保存'; } }
+function cloudOpen(){ cloudRender(); cloudMsg(''); document.getElementById('cloud').style.display='flex'; try{ fetch(cloudApi()+'/health',{cache:'no-store'}).catch(()=>{}); }catch(e){} }   // 眠っているサーバーを先に起こす
+function cloudWire(){
+  document.getElementById('tCloud').onclick=cloudOpen;
+  document.getElementById('cldClose').onclick=()=>{ document.getElementById('cloud').style.display='none'; };
+  document.getElementById('cldPush').onclick=async()=>{ const b=document.getElementById('cldPush'); if(b.disabled)return; b.disabled=true; b.textContent='保存中…'; if(_cldTimer){ clearTimeout(_cldTimer); _cldTimer=null; } await cloudPush(false); b.disabled=false; b.textContent='今すぐ保存'; };
+  document.getElementById('cldNew').onclick=async()=>{ const b=document.getElementById('cldNew'); if(b.disabled)return; b.disabled=true; b.textContent='発行中…'; cloudMsg('');
+    try{ const d=await cloudReq('POST','/api/cloud/new'); cloudSet({id:d.id,pin:d.pin,last:0}); cloudRender(); await cloudPush(false); }
+    catch(e){ cloudMsg(cloudErr(e),true); }
+    b.disabled=false; b.textContent='IDを発行して保存を始める'; cloudRender(); };
+  document.getElementById('cldPull').onclick=async()=>{ const b=document.getElementById('cldPull'); if(b.disabled)return;
+    const id=(document.getElementById('cldIdIn').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^(.{4})(.{4})$/,'$1-$2');
+    const pin=(document.getElementById('cldPinIn').value||'').replace(/[^0-9]/g,'');
+    if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(id)||pin.length!==4){ cloudMsg('IDとPINを入力してください',true); return; }
+    b.disabled=true; b.textContent='…'; cloudMsg('');
+    try{ const d=await cloudReq('GET','/api/cloud/'+encodeURIComponent(id)+'?pin='+pin);
+      const has=!!(PROF.name||Object.keys(PROF.cleared||{}).length); const cur=cloudGet();
+      if(has&&!(cur&&cur.id===id)&&!confirm('この端末のデータを上書きしますか？')){ b.disabled=false; b.textContent='ログイン'; return; }
+      cloudApply(d.data); cloudSet({id,pin,last:Date.now()}); if(_cldTimer){ clearTimeout(_cldTimer); _cldTimer=null; }
+      document.getElementById('cldIdIn').value=''; document.getElementById('cldPinIn').value='';
+      cloudRender(); cloudMsg('ログインしました'+(PROF.name?'（'+PROF.name+'）':'')); }
+    catch(e){ cloudMsg(e.code==='bad_data'?'データ形式が不正です':cloudErr(e),true); }
+    b.disabled=false; b.textContent='ログイン'; };
+}
 // 後手（董卓）対AI：董卓は史実布陣(preset)・連合(side0)はAIが自動布陣（王と大駒は森に隠す）→対局開始
 // 連合(側0)=AIを「一点突破・香ロケット」ドクトリンで布陣（弱い端筋にロケット＋角で両端row4に効かせ＋桂の足場＋突き捨て歩＋王は逆端の森）
 function placeScenarioCoalitionAI(side){
@@ -2899,6 +2994,7 @@ const _showRules=()=>{ const dyn=document.getElementById('rulesDyn');
 document.getElementById('btnRules').onclick=_showRules;
 (function(){ var bc=document.getElementById('btnChat'); if(bc)bc.onclick=function(){ setChatOpen(!chatOpen); }; var cc=document.getElementById('chatclose'); if(cc)cc.onclick=function(){ setChatOpen(false); }; var cs=document.getElementById('chatsend'); var cin=document.getElementById('chatin'); if(cs&&cin)cs.onclick=function(){ sendChatMsg(cin.value); }; if(cin)cin.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); sendChatMsg(cin.value); } }; })();
 document.getElementById('tRules').onclick=_showRules;
+try{ cloudWire(); }catch(e){}
 document.getElementById('rClose').onclick=()=>{ document.getElementById('rules').style.display='none'; };
 /* ===== オンライン対戦（WebRTC P2P / PeerJS） ===== */
 function randCode(){ var s='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',o=''; for(var i=0;i<5;i++)o+=s[Math.floor(Math.random()*s.length)]; return o; }
