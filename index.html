@@ -115,7 +115,7 @@
 <div id="title">
   <div class="tcard">
     <div class="tlogo">地形将棋<span class="seal">三國</span></div>
-    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-20-remake-polish</span></div>
+    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-21-ai-train</span></div>
     <button class="btn go big" id="tAI">コンピューターと対戦</button>
     <button class="btn big" id="tOnline" style="background:linear-gradient(180deg,#6f4a9a,#4b2f6e);color:#fff;border-color:#b797e0">オンライン対戦</button>
     <button class="btn big" id="tRules">ルール</button>
@@ -505,6 +505,9 @@ function pickSiegePlacement(terrain,side,army){
     const deepRows=fenceRows(side); const isForest=(r,c)=>grid[r][c]===TERRAIN.FOREST;
     king = forts.find(([r,c])=>isForest(r,c)&&deepRows.includes(r)) || forts.find(([r,c])=>isForest(r,c)) || forts.find(([r,c])=>deepRows.includes(r)) || forts[0];
     /* 王は砦マス上なので used には既に入っている */ }
+  const _sfen=[]; if(!isDef){ const fr=fenceRows(side); const cand=[[fwd,0],[fwd,-1],[fwd,1],[0,-1],[0,1],[2*fwd,0],[2*fwd,-1],[2*fwd,1]];
+    for(const [dr,dc] of cand){ if(_sfen.length>=3)break; const r=king[0]+dr,c=king[1]+dc; if(!inB(r,c)||!fr.includes(r)||blocked(r,c)||used.has(r+'_'+c))continue; _sfen.push(r+'_'+c); used.add(r+'_'+c); }
+    const rest=[]; for(const r of fr)for(let c=0;c<N;c++){ if(blocked(r,c)||used.has(r+'_'+c))continue; rest.push([Math.abs(r-king[0])+Math.abs(c-king[1]),r,c]); } rest.sort((a,b)=>a[0]-b[0]); for(const [,r,c] of rest){ if(_sfen.length>=3)break; _sfen.push(r+'_'+c); used.add(r+'_'+c); } }
   // 金銀で王を固める
   const around=[[0,-1],[0,1],[-fwd,-1],[-fwd,1],[-fwd,0],[fwd,0]];
   const nearKing=(t)=>{ for(const [dr,dc] of around){ const r=king[0]+dr,c=king[1]+dc; if(inB(r,c)&&!blocked(r,c)&&!used.has(r+'_'+c)&&inZone(r,c)){take(t);place(t,r,c);return true;} } return false; };
@@ -528,7 +531,7 @@ function pickSiegePlacement(terrain,side,army){
   const pawnFront=(r,c)=>{ const pr=r+fwd; if(has('P')&&inB(pr,c)&&!blocked(pr,c)&&!used.has(pr+'_'+c)&&inZone(pr,c)){take('P');place('P',pr,c);} };
   for(const pp of pieces.filter(p=>p.type==='L')) pawnFront(pp.r,pp.c);
   for(const t of Object.keys(counts)){ while(counts[t]>0){ if(!forward(t))break; } }
-  return {king,pieces,fences:[],forts};
+  return {king,pieces,fences:_sfen,forts};
 }
 // 山のAI布陣: 王は最深3行の「森」に隠す。砦3つ・柵3つも森を最優先で散在/王前を塞ぐ。大駒(飛角)は後方の森に温存し平地に出さない。
 function pickMountainPlacement(terrain,side,army){
@@ -588,7 +591,7 @@ function pickPlacementForTerrain(terrain,side,army,fenceMax=3,oppBoard=null,oppF
   // 王＝敵城から遠い／川筋の自城（攻めと逆サイドに置いて攻守を分離）
   let king=myCastles[0]||[side===0?N-1:0, Math.round(CENTER)], kbest=-1e9;
   for(const [r,c] of myCastles){ let s=0; if(colRiver[c]>0)s+=8; for(const [,ec] of enemyCastles) s+=Math.abs(ec-c); if(s>kbest){kbest=s;king=[r,c];} }
-  used.add(king[0]+'_'+king[1]);
+  used.add(king[0]+'_'+king[1]); for(const [dr,dc] of [[2*fwd,0],[2*fwd,-1],[2*fwd,1]]){ const r=king[0]+dr,c=king[1]+dc; if(fenceSet.size>=fenceMax)break; if(fenceRows(side).includes(r)&&free(r,c))fenceSet.add(r+'_'+c); }
   const counts={}; for(const t of army)counts[t]=(counts[t]||0)+1; const has=t=>counts[t]>0, take=t=>{counts[t]--;};
   const pieces=[]; const place=(t,r,c)=>{pieces.push({type:t,r,c});used.add(r+'_'+c);};
   // 攻撃目標＝敵城の筋。開いている筋を優先し、王から遠い筋を主目標に（最大2本に集中）
@@ -647,7 +650,7 @@ function pickPlacementForTerrain(terrain,side,army,fenceMax=3,oppBoard=null,oppF
   for(const r of (side===0?[...home].sort((a,b)=>a-b):[...home].sort((a,b)=>b-a))){ for(let c=0;c<N;c++){ if(!has('P'))break; if(free(r,c)){take('P');place('P',r,c);} } }
   // --- 柵（最大fenceMax）＝王の前/横を塞ぐ（守りの壁）---
   const fenceCand=[[fwd,0],[fwd,-1],[fwd,1],[0,-1],[0,1],[2*fwd,0],[2*fwd,-1],[2*fwd,1]].map(([dr,dc])=>[king[0]+dr,king[1]+dc]);
-  for(const g of fenceCand){ if(fenceSet.size>=fenceMax)break; if(free(g[0],g[1])){ fenceSet.add(g[0]+'_'+g[1]); } }
+  for(const g of fenceCand){ if(fenceSet.size>=fenceMax)break; if(fenceRows(side).includes(g[0])&&free(g[0],g[1])){ fenceSet.add(g[0]+'_'+g[1]); } } { const _fc=[]; for(const r of fenceRows(side))for(let c=0;c<N;c++){ if(free(r,c))_fc.push([Math.abs(r-king[0])+Math.abs(c-king[1]),r,c]); } _fc.sort((a,b)=>a[0]-b[0]); for(const [,r,c] of _fc){ if(fenceSet.size>=fenceMax)break; fenceSet.add(r+'_'+c); } }
   const fences=[...fenceSet];
   // --- 余り駒を埋める ---
   for(const t of Object.keys(counts)){ while(counts[t]>0){ let put=null; for(const r of home){for(let c=0;c<N;c++)if(free(r,c)){put=[r,c];break;}if(put)break;} if(!put)break; take(t);place(t,put[0],put[1]); } }
@@ -727,7 +730,10 @@ var DW={hand:0.85,adv:0.07,advLong:0.15,center:0.015,hideForest:1.2,cross:0.25,c
 // ↑攻め重視へ再設定：守りの「玉周りに駒を盛る」加点(guard)を撤廃＝この将棋は初手から駒組済なので玉の囲い増強は悪手。
 //   王の自城固執(onCastleMe/kingHome)を弱めて早逃げを可能に。香ロケットの前進/侵入/敵拠点接近(advLong/cross/rocket/strongAdj)を強化。守りは「攻められた筋の利きを足す=kingDanger低減」で行う。
 var W=DW;
-function tup(){ return (NODES&1023)===0 ? Date.now()>DEAD : false; }
+// ★探索・手選びの調整値（自己対局で調整。pos.cfg で上書き可）
+var DCFG={rnd:0, rndRaw:0, rndFc:1, kLock:1, fcSafe:0, seeKing:1, razeMode:2, dropFreePly:-1, kdF1:0.5, kdF2:0.25, chkExt:0, extMaxPly:12, revPen:3, kWander:2.5, softFrac:0.6, maxDepth:40, noise:0.01, fcMargin:1e9, fcNet:3, fcGain:0.5, fcOff:12, fcDef:8, lmrI:4, lmrI2:12, nullR:2, asp:6};
+var CFG=DCFG;
+function tup(){ return (NODES&255)===0 ? Date.now()>DEAD : false; }
 var TYPES=['K','R','B','G','S','N','L','P','PR','PB','PS','PN','PL','PP'], TIDX={};
 for(var _i=0;_i<TYPES.length;_i++)TIDX[TYPES[_i]]=_i;
 function TI(t,p){ return TIDX[t]*2+p; }
@@ -868,9 +874,9 @@ function dropCells(S,side){ var ok={},out=[];
     var contested=false; for(var ar=-1;ar<=1&&!contested;ar++)for(var ac=-1;ac<=1;ac++){ if(!ar&&!ac)continue; var er=rr+ar,ec=cc+ac; if(er<0||er>=N||ec<0||ec>=N)continue; var ep=S.board[er][ec]; if(ep&&ep.player!==side){contested=true;break;} }
     if(contested) out.push([rr,cc]); }
   return out; }
-function dropMoves(S,side){ var hand=S.hand&&S.hand[side]; if(!hand||!hand.length)return [];
+function dropMoves(S,side,free){ var hand=S.hand&&S.hand[side]; if(!hand||!hand.length)return [];
   var seen={},types=[]; for(var i=0;i<hand.length;i++){ if(!seen[hand[i]]){seen[hand[i]]=1;types.push(hand[i]);} }
-  var cells=dropCells(S,side),out=[];
+  var cells=dropCells(S,side,free),out=[];
   for(var i=0;i<cells.length;i++)for(var j=0;j<types.length;j++)out.push({from:null,to:cells[i],drop:types[j],s:side});
   return out; }
 // 火計：成り駒＋金が周囲8マスの森(6マス以上)に火を放つ。各駒1度・1手消費。隣接森の敵駒/敵砦が居る時のみ候補化
@@ -903,6 +909,7 @@ function quies(S,toMove,alpha,beta,ply){ NODES++; var dw=deadSide(S); if(dw!==nu
 function hasHeavy(S,side){ var b=S.board; for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var p=b[r][c]; if(p&&p.player===side&&p.type!=="K"&&p.type!=="P")return true; } return false; }
 function nega(S,toMove,depth,alpha,beta,ply){ NODES++;
   var dw=deadSide(S); if(dw!==null)return dw===toMove?(WIN-ply):-(WIN-ply);
+  if(CFG.chkExt&&ply<CFG.extMaxPly&&srvInCheck(S,toMove))depth+=1;
   if(depth<=0)return quies(S,toMove,alpha,beta,ply);
   var a0=alpha, te=TT.get(HASH), ttm=0;
   if(te){ ttm=te.m; if(te.d>=depth){ if(te.f===0)return te.s; if(te.f===1&&te.s>alpha)alpha=te.s; else if(te.f===2&&te.s<beta)beta=te.s; if(alpha>=beta)return te.s; } }
@@ -911,15 +918,15 @@ function nega(S,toMove,depth,alpha,beta,ply){ NODES++;
   //   王手中はパスすると王を取られて低評価が返る＝自然に刈られない（明示判定不要）。静的評価がβ以上の時だけ試行＝ゼツワン/無駄試行を抑制。
   if(depth>=3 && beta<WIN-1000 && beta>-(WIN-1000) && hasHeavy(S,toMove)){
     var se=evalFast(S,toMove);
-    if(se>=beta){ var R=depth>6?3:2; HASH=(HASH^Zside)>>>0;
+    if(se>=beta){ var R=depth>6?CFG.nullR+1:CFG.nullR; HASH=(HASH^Zside)>>>0;
       var nv=-nega(S,opp,depth-1-R,-beta,-beta+1,ply+1); HASH=(HASH^Zside)>>>0;
       if(!tup()&&nv>=beta)return beta; } }
-  var moves=allMoves(S.board,TER,toMove,S.fences,S.forts); var _dm=dropMoves(S,toMove); if(_dm.length)moves=moves.concat(_dm); var _fm=fireMoves(S,toMove); if(_fm.length)moves=moves.concat(_fm); if(!moves.length)return -(WIN-ply);
+  var moves=allMoves(S.board,TER,toMove,S.fences,S.forts); var _dm=dropMoves(S,toMove,ply<=CFG.dropFreePly); if(_dm.length)moves=moves.concat(_dm); var _fm=fireMoves(S,toMove); if(_fm.length)moves=moves.concat(_fm); if(!moves.length)return -(WIN-ply);
   order(S,moves,toMove,ply,ttm); var best=-1e9, bestMk=0, aborted=false;
   for(var i=0;i<moves.length;i++){ if(tup()){aborted=true;break;} var mv=moves[i]; var cap=S.board[mv.to[0]][mv.to[1]]; var tac=(!!cap)||(TER.grid[mv.to[0]][mv.to[1]]===TERRAIN.CASTLE);
     var u=makeM(S,mv); var s;
     if(u.terminal){ s=WIN-ply; }
-    else { var red=0; if(i>=4&&depth>=3&&!tac){ red=1; if(i>=12&&depth>=4)red=2; } // 守りを刈らないよう控えめなLMRのみ
+    else { var red=0; if(i>=CFG.lmrI&&depth>=3&&!tac){ red=1; if(i>=CFG.lmrI2&&depth>=4)red=2; } // 守りを刈らないよう控えめなLMRのみ
       s=-nega(S,opp,depth-1-red,-alpha-1,-alpha,ply+1);
       if(s>alpha&&(red>0||(s<beta&&i>0))) s=-nega(S,opp,depth-1,-beta,-alpha,ply+1);
     }
@@ -943,7 +950,7 @@ function _capInfo(S,side,m){ if(!m||m.from===null)return null; var cap=S.board[m
   var ek=null,mk=null; for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var p=S.board[r][c]; if(p&&p.type==='K'){ if(p.player===opp)ek=[r,c]; else mk=[r,c]; } }
   var offK=ek?12/(3+Math.abs(m.to[0]-ek[0])+Math.abs(m.to[1]-ek[1])):0;                          // 玉に迫る取り
   var defK=mk?((Math.abs(m.to[0]-mk[0])+Math.abs(m.to[1]-mk[1]))<=2?8:0):0;                       // 自玉周りの敵を排除＝防御の取り
-  return {net:net,score:net*3+gain*0.5+offK+defK}; }
+  return {net:net,score:net*CFG.fcNet+gain*CFG.fcGain+offK*CFG.fcOff/12+defK*CFG.fcDef/8}; }
 function bestForcedCap(S,side){ var moves=allMoves(S.board,TER,side,S.fences,S.forts); var bm=null,bs=-1e9,bn=0;
   for(var i=0;i<moves.length;i++){ var info=_capInfo(S,side,moves[i]); if(!info||info.net<0)continue;   // ★net<0(取られ損)は強制しない＝守られた駒に突っ込まない
     if(info.score>bs){bs=info.score;bm=moves[i];bn=info.net;} }
@@ -956,7 +963,7 @@ function attacksSquare(S,fr,fc,tr,tc){ var pc=S.board[fr][fc]; if(!pc)return fal
   var mv=genMoves(S.board,TER,fr,fc,pc,S.fences,S.forts); var hit=false; for(var i=0;i<mv.length;i++){ if(mv[i].r===tr&&mv[i].c===tc){hit=true;break;} }
   if(needDummy)S.board[tr][tc]=save; return hit; }
 // (tr,tc)を攻める side の駒価値リスト（昇順＝安い駒から取る）
-function attackerVals(S,tr,tc,side){ var out=[]; for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var p=S.board[r][c]; if(p&&p.player===side&&p.type!=='K'&&attacksSquare(S,r,c,tr,tc))out.push(VALUE[p.type]||1); }
+function attackerVals(S,tr,tc,side){ var out=[]; for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var p=S.board[r][c]; if(p&&p.player===side&&(p.type!=='K'||CFG.seeKing)&&attacksSquare(S,r,c,tr,tc))out.push(VALUE[p.type]||1); }
   out.sort(function(a,b){return a-b;}); return out; }
 // 静的交換評価：side が(tr,tc)の駒を取り始めた時の純損得（標準SEE・X線は無視＝簡易版）
 function seeSquare(S,tr,tc,side){ var occ=S.board[tr][tc]; if(!occ)return 0;
@@ -987,10 +994,10 @@ function bigHangCount(S,side){ var op=side===0?1:0; var em=allMoves(S.board,TER,
     if(fm===null)fm=allMoves(S.board,TER,side,S.fences,S.forts); var def=false; for(var j=0;j<fm.length;j++){ if(fm[j].to[0]===r&&fm[j].to[1]===c){ def=true; break; } }
     var net=(def?minAtk:0)-bv; if(net<-3)cnt++; }   // 受けても割に合わない＝只取られ
   return cnt; }
-function searchBest(pos){ TER=pos.terrain; FORTWIN=!!pos.fortWin; W=(pos.w?Object.assign({},DW,pos.w):DW); DEAD=Date.now()+(pos.timeMs||2500); KILL=[]; HIST={}; if(!pos.keepTT)TT.clear(); NODES=0;   // keepTT＝先読み(ponder)で貯めた置換表を引き継いで本譜を深く読む
+function searchBest(pos){ TER=pos.terrain; FORTWIN=!!pos.fortWin; W=(pos.w?Object.assign({},DW,pos.w):DW); CFG=(pos.cfg?Object.assign({},DCFG,pos.cfg):DCFG); var T0=Date.now(); DEAD=Date.now()+(pos.timeMs||2500); KILL=[]; HIST={}; if(!pos.keepTT)TT.clear(); NODES=0;   // keepTT＝先読み(ponder)で貯めた置換表を引き継いで本譜を深く読む
   var S={board:pos.board,walls:pos.walls,fences:pos.fences,forts:pos.forts,hand:pos.hand};
   var side=pos.side, opp=side===0?1:0; initHash(S,side);
-  var moves=allMoves(S.board,TER,side,S.fences,S.forts); var _dm=dropMoves(S,side); if(_dm.length)moves=moves.concat(_dm); var _fm0=fireMoves(S,side); if(_fm0.length)moves=moves.concat(_fm0); if(!moves.length)return {move:null};
+  var moves=allMoves(S.board,TER,side,S.fences,S.forts); var _dm=dropMoves(S,side,CFG.dropFreePly>=0); if(_dm.length)moves=moves.concat(_dm); var _fm0=fireMoves(S,side); if(_fm0.length)moves=moves.concat(_fm0); if(!moves.length)return {move:null}; var _allRoot=moves.slice();
   // ★勝ち確定手の即指し：今この手番で敵玉を取れる手があれば、問答無用でそれを指す（数手先の詰みと同点になって勝ちを逃すのを根絶）。
   for(var _wi=0;_wi<moves.length;_wi++){ var _wm=moves[_wi]; if(!_wm.from||_wm.fire)continue; var _wt=S.board[_wm.to[0]][_wm.to[1]]; if(_wt&&_wt.type==='K'&&_wt.player!==side)return {move:{from:_wm.from,to:_wm.to},depth:0,score:WIN,nodes:NODES,ponder:!!pos.ponder}; }
   // 王手回避の強制：王が見えている(森に隠れていない)のに王手中なら、王手を解消する手(玉逃げ/合駒/王手駒の取り)だけに絞る。
@@ -1003,7 +1010,7 @@ function searchBest(pos){ TER=pos.terrain; FORTWIN=!!pos.fortWin; W=(pos.w?Objec
   //   それ以降は王の移動を許可＝攻められたら早逃げできる（囲いを盛るより逃げるのが好手）。危険度はkingDangerが評価。
   if(!srvInCheck(S,side)){ var kc0=srvKingCell(S,side);
     if(kc0){ var kHid=S.board[kc0[0]][kc0[1]]&&S.board[kc0[0]][kc0[1]].hidden; var kdng=kingDanger(S.board,kc0[0],kc0[1],1-side,side===0?-1:1,side,S);
-      if((pos.ply!==undefined&&pos.ply<6)||kHid||kdng<1.0){ var f2=moves.filter(function(m){return !(m.from&&m.from[0]===kc0[0]&&m.from[1]===kc0[1]);}); if(f2.length)moves=f2; } } }   // 危険が無い時は王を固定（無駄な放浪・自陣突出防止）。敵スライダーが狙う等(kdng≥1)なら早逃げ可
+      if((pos.ply!==undefined&&pos.ply<6)||kHid||(CFG.kLock&&kdng<1.0)){ var f2=moves.filter(function(m){return !(m.from&&m.from[0]===kc0[0]&&m.from[1]===kc0[1]);}); if(f2.length)moves=f2; } } }   // 危険が無い時は王を固定（無駄な放浪・自陣突出防止）。敵スライダーが狙う等(kdng≥1)なら早逃げ可
   // ★王タダ取られ防止の安全網：その手の後に相手が次の一手で自王を取れてしまう手は除外（安全な手が他にあれば）。金が守りを外す/王の利き筋の駒が退いて開き王手になる類のポカを根絶。
   //   コスト対策＝王に隣接 or 王と同じ筋/段/斜めの駒が動く手だけ精査（遠い無関係な手は王を晒し得ないのでスキップ）。
   if(!mustEscape){ var _kc2=srvKingCell(S,side);
@@ -1018,55 +1025,65 @@ function searchBest(pos){ TER=pos.terrain; FORTWIN=!!pos.fortWin; W=(pos.w?Objec
   var REV={}; if(pos.recent){ for(var ri=0;ri<pos.recent.length;ri++){ var rm=pos.recent[ri]; if(rm&&rm.length>=2)REV[rm[0]*11+rm[1]]=1; } }
   // チャット指示(コーチ)：オフラインAI対戦で人間が出した指示をルートの手選びにバイアス（安全網で絞った後＝王/大駒は守ったまま指示に従う）
   var COACH=pos.coach||null; var _ckc=COACH?srvKingCell(S,side):null;
-  order(S,moves,side,0,0); var best=moves[0], bestScore=-1e9, done=0;
+  order(S,moves,side,0,0); var best=moves[0], bestScore=-1e9, done=0, _rootSc=null, _curSc={};
+  // ★段階づけ用の「うっかり」：確率 CFG.rnd で読まずに候補手から無作為に1手（王手回避中・先読み中は除く）。rndFc=1 なら取れる駒は取る、0 ならうっかり時は取り逃しもする（鬼は rnd=0＝常に読む）。
+  if(CFG.rnd>0&&!mustEscape&&!pos.ponder&&Math.random()<CFG.rnd){ var _rl=(CFG.rndRaw?_allRoot:moves); var _rm=_rl[Math.floor(Math.random()*_rl.length)];
+    var _rbest=_rm; if(CFG.rndFc&&!_rbest.fire&&_rbest.from!==undefined){ var _gc=bestForcedCap(S,side); if(_gc)_rbest=_gc.m; }
+    var _ro=_rbest.fire?{from:_rbest.from,to:_rbest.to,fire:true}:(_rbest.from===null?{from:null,to:_rbest.to,drop:_rbest.drop}:{from:_rbest.from,to:_rbest.to});
+    return {move:_ro,depth:0,score:0,nodes:NODES,ponder:!!pos.ponder,rnd:1}; }
   // 反復深化＋アスピレーション窓＋ルートPVS：前回スコアの近傍に狭い窓を張り、外れたら広げて再探索。
   //   1手目だけ全窓、以降はゼロ窓で“今より良いか”だけ判定→良ければ再探索。深さを稼ぐ（密集局面の浅読み対策）。
-  for(var depth=1; depth<=40; depth++){
-    var ASP=(depth<=3)?1e9:6, alpha=(depth<=3)?-1e9:bestScore-ASP, beta=(depth<=3)?1e9:bestScore+ASP, locBest=null, locScore=-1e9;   // 窓は評価スケール(歩=1,飛=10)に合わせ±6＝実際に枝を絞る
+  for(var depth=1; depth<=CFG.maxDepth; depth++){
+    var ASP=(depth<=3)?1e9:CFG.asp, alpha=(depth<=3)?-1e9:bestScore-ASP, beta=(depth<=3)?1e9:bestScore+ASP, locBest=null, locScore=-1e9;   // 窓は評価スケール(歩=1,飛=10)に合わせ±6＝実際に枝を絞る
     for(;;){ locBest=null; locScore=-1e9; var a=alpha;
-      for(var i=0;i<moves.length;i++){ if(tup())break; var mv=moves[i]; var _cm=mv.from?S.board[mv.from[0]][mv.from[1]]:null; var _capTgt=mv.from?S.board[mv.to[0]][mv.to[1]]:null; var _capd=!!_capTgt; var _capV=_capTgt?(VALUE[_capTgt.type]||1):0; var u=makeM(S,mv); var s;
-        if(u.terminal){ s=WIN-1; }
-        else if(i===0){ s=-nega(S,opp,depth-1,-beta,-a,1); }
-        else { s=-nega(S,opp,depth-1,-a-1,-a,1); if(!tup()&&s>a&&s<beta) s=-nega(S,opp,depth-1,-beta,-a,1); }
-        unmakeM(S,u); s+=Math.random()*0.01; if(mv.from&&REV[mv.to[0]*11+mv.to[1]])s-=3;
-        // ★王手を「逃げる」より「王手の駒を安全に取る」を優先：取れば駒得＋脅威排除。玉位置ペナルティに負けないよう強めに加点（損な取り=SEE<0は除外）。詰みスコアには触れない。
-        if(mustEscape&&_capd&&_capV>0&&s>-(WIN-1000)&&s<(WIN-1000)&&seeMove(S,mv,side)>=0)s+=_capV+8;
+      for(var i=0;i<moves.length;i++){ if(tup())break; var mv=moves[i]; var _cm=mv.from?S.board[mv.from[0]][mv.from[1]]:null; var _capTgt=mv.from?S.board[mv.to[0]][mv.to[1]]:null; var _capd=!!_capTgt; var _capV=_capTgt?(VALUE[_capTgt.type]||1):0;
+        // ルート加点（詰みでない時だけ足す）を探索の前に計算
+        var bon=0;
+        if(mv.from&&REV[mv.to[0]*11+mv.to[1]])bon-=CFG.revPen;
+        // ★王手を「逃げる」より「王手の駒を安全に取る」を優先：取れば駒得＋脅威排除（損な取り=SEE<0は除外）。
+        if(mustEscape&&_capd&&_capV>0&&seeMove(S,mv,side)>=0)bon+=_capV+8;
         if(COACH&&mv.from&&_cm&&_cm.type!=='K'){ var _adv=side===0?(mv.from[0]-mv.to[0]):(mv.to[0]-mv.from[0]); var _cb=0;
           if(COACH.file!=null){ var _dfrom=Math.abs(mv.from[1]-COACH.file),_dto=Math.abs(mv.to[1]-COACH.file); _cb+=(_dfrom-_dto)*0.5; if(_dto===0)_cb+=0.9; if(_dto<=1&&_adv>0)_cb+=0.6; }   // 指定筋へ寄る(列距離を詰める)ほど加点＋その筋に乗って前進で加点
           if(COACH.intent==='attack'){ if(_adv>0)_cb+=0.7; } else if(COACH.intent==='defend'&&_ckc){ var _d0=Math.abs(mv.from[0]-_ckc[0])+Math.abs(mv.from[1]-_ckc[1]),_d1=Math.abs(mv.to[0]-_ckc[0])+Math.abs(mv.to[1]-_ckc[1]); if(_d1<_d0)_cb+=0.8; if(_adv>0)_cb-=0.7; }
           if(COACH.piece&&_cm.type===COACH.piece){ _cb+=0.9; if(_adv>0)_cb+=0.6; }
-          s+=_cb; }
-        // 大駒の遊び潰し：飛角竜馬が自陣後方2段で横滑り/後退する非捕獲手＝働いてない手を減点し、他の働く手を優先させる（後方シャッフル防止）
-        if(W.idlePen&&_cm&&!_capd&&(_cm.type==='R'||_cm.type==='B'||_cm.type==='PR'||_cm.type==='PB')){ var _af=side===0?(N-1-mv.from[0]):mv.from[0], _at=side===0?(N-1-mv.to[0]):mv.to[0]; if(_af<=2&&_at<=2&&_at<=_af)s-=W.idlePen; }
-        if(mv.from===null&&(mv.drop==='R'||mv.drop==='B')){ var _da=side===0?(N-1-mv.to[0]):mv.to[0]; if(_da<=2)s-=3; }
-        // ★王の無駄うろつき潰し：王手でない時、王の非捕獲な横滑り/後退＝攻めをサボって王をフラフラさせる手を減点。前進(寄り)や安全確保(評価で別途加点)は許容。実データでAIが攻めず王を横に動かし続けるのを直す。
-        if(!mustEscape&&_cm&&_cm.type==='K'&&!_capd){ var _ka=side===0?(mv.from[0]-mv.to[0]):(mv.to[0]-mv.from[0]); if(_ka<=0)s-=2.5; }
-        // ★進捗タイブレーク：静的評価が拮抗する時、取り>成り>敵拠点制圧を優先＝勝勢を確実に詰める/成り込む。小さい値で本当の評価差は上書きしない。詰み(WIN)スコアには触れない(最短詰めを崩さない)。
-        if(mv.from&&s>-(WIN-1000)&&s<(WIN-1000)){ if(_capd)s+=0.25; if(_cm&&!_cm.promoted&&CAN_PROMOTE.has(_cm.type)&&(inPromotionZone(mv.to[0],side)||inPromotionZone(mv.from[0],side)))s+=0.4; var _tk=mv.to[0]+'_'+mv.to[1]; if((S.forts&&S.forts[_tk]!==undefined&&S.forts[_tk]!==side)||TER.grid[mv.to[0]][mv.to[1]]===TERRAIN.CASTLE)s+=0.6;
-          // ★香車ロケット：香/成香を敵方向へ突撃させる手を加点＝ユーザの代名詞。安い駒なので取られても突っ込み攻めを作る（中盤の攻め切り）。
-          if(W.rocketPush&&_cm&&(_cm.type==='L'||_cm.type==='PL')){ var _la=side===0?(mv.from[0]-mv.to[0]):(mv.to[0]-mv.from[0]); if(_la>0)s+=Math.min(_la,6)*W.rocketPush; }
-          // 全駒共通の微小な前進バイアス：評価が拮抗した時は敵方向へ出る手を優先＝攻めをサボって後方/横で駒をうろつかせる手(実データの金1,1↔1,0等)を抑え、前線へ駒を進める。後退/横には加点しない。
-          if(_cm&&_cm.type!=='K'){ var _fa=side===0?(mv.from[0]-mv.to[0]):(mv.to[0]-mv.from[0]); if(_fa>0)s+=Math.min(_fa,3)*0.15; } }
-        if(s>locScore){locScore=s;locBest=mv;} if(s>a)a=s; }
+          bon+=_cb; }
+        // 大駒の遊び潰し：飛角竜馬が自陣後方2段で横滑り/後退する非捕獲手を減点（後方シャッフル防止）
+        if(W.idlePen&&_cm&&!_capd&&(_cm.type==='R'||_cm.type==='B'||_cm.type==='PR'||_cm.type==='PB')){ var _af=side===0?(N-1-mv.from[0]):mv.from[0], _at=side===0?(N-1-mv.to[0]):mv.to[0]; if(_af<=2&&_at<=2&&_at<=_af)bon-=W.idlePen; }
+        if(mv.from===null&&(mv.drop==='R'||mv.drop==='B')){ var _da=side===0?(N-1-mv.to[0]):mv.to[0]; if(_da<=2)bon-=3; }
+        // ★王の無駄うろつき潰し：王手でない時、王の非捕獲な横滑り/後退を減点。
+        if(!mustEscape&&_cm&&_cm.type==='K'&&!_capd){ var _ka=side===0?(mv.from[0]-mv.to[0]):(mv.to[0]-mv.from[0]); if(_ka<=0)bon-=CFG.kWander; }
+        // ★進捗タイブレーク：取り>成り>敵拠点制圧。香車ロケット(前進加点)・全駒の微小な前進バイアス。
+        if(mv.from){ if(_capd)bon+=0.25; if(_cm&&!_cm.promoted&&CAN_PROMOTE.has(_cm.type)&&(inPromotionZone(mv.to[0],side)||inPromotionZone(mv.from[0],side)))bon+=0.4; var _tk=mv.to[0]+'_'+mv.to[1]; if((S.forts&&S.forts[_tk]!==undefined&&S.forts[_tk]!==side)||TER.grid[mv.to[0]][mv.to[1]]===TERRAIN.CASTLE)bon+=0.6;
+          if(W.rocketPush&&_cm&&(_cm.type==='L'||_cm.type==='PL')){ var _la=side===0?(mv.from[0]-mv.to[0]):(mv.to[0]-mv.from[0]); if(_la>0)bon+=Math.min(_la,6)*W.rocketPush; }
+          if(_cm&&_cm.type!=='K'){ var _fa=side===0?(mv.from[0]-mv.to[0]):(mv.to[0]-mv.from[0]); if(_fa>0)bon+=Math.min(_fa,3)*0.15; } }
+        var nz=Math.random()*CFG.noise, sh=bon+nz;
+        var u=makeM(S,mv); var raw;
+        // 窓を加点ぶんずらす：raw+sh > a ⇔ raw > a-sh
+        if(u.terminal){ raw=WIN-1; }
+        else if(i===0){ raw=-nega(S,opp,depth-1,-(beta-sh),-(a-sh),1); }
+        else { var t=a-sh; raw=-nega(S,opp,depth-1,-t-1,-t,1); if(!tup()&&raw>t&&raw<beta-sh) raw=-nega(S,opp,depth-1,-(beta-sh),-t,1); }
+        unmakeM(S,u);
+        var s=(raw>-(WIN-1000)&&raw<(WIN-1000))? raw+sh : raw+nz;
+        _curSc[mvKey(mv)]=s; if(s>locScore){locScore=s;locBest=mv;} if(s>a)a=s; }
       if(tup())break;
       if(locScore<=alpha&&alpha>-1e9){ alpha=-1e9; continue; }   // フェイルロー＝下に広げて再探索
       if(locScore>=beta&&beta<1e9){ beta=1e9; continue; }        // フェイルハイ＝上に広げて再探索
       break; }
-    if(!tup()&&locBest){ best=locBest; bestScore=locScore; done=depth; var idx=moves.indexOf(locBest); if(idx>0){moves.splice(idx,1);moves.unshift(locBest);} }
-    if(tup())break; if(bestScore>WIN-1000)break; }
+    if(!tup()&&locBest){ _rootSc=_curSc; _curSc={}; best=locBest; bestScore=locScore; done=depth; var idx=moves.indexOf(locBest); if(idx>0){moves.splice(idx,1);moves.unshift(locBest);} }
+    if(tup())break; if(bestScore>WIN-1000)break; if(Date.now()-T0>CFG.softFrac*(pos.timeMs||2500))break; }
   // ★勝勢終盤(相手がほぼ裸玉)の「勝ち切り」決定ロジック：探索の詰みスコアが膨らんで無駄に駒をうろつかせ、勝勢なのに勝ち切れない事があるので、
   //   ここで決定的に「静止した敵拠点(城/砦)を落とす」手を選ぶ。玉は逃げ回るので、追い回すより静止した拠点を全部落とす方が確実=容易(=どちらが容易かの判断)。
   //   ※即詰み(敵玉が取れる手)は探索冒頭の王取りスキャンで既に処理済み。ここは取れない時の確実な前進。
   if(!mustEscape){
     var _oppN2=0,_okc=null; for(var _qr=0;_qr<N;_qr++)for(var _qc=0;_qc<N;_qc++){ var _qp=S.board[_qr][_qc]; if(!_qp)continue; if(_qp.type==='K'){ if(_qp.player!==side)_okc=[_qr,_qc]; } else if(_qp.player!==side)_oppN2++; }
-    if(_okc&&_oppN2<=1){   // 相手が盤上で裸玉なら拠点狩りを発動（持駒の有無は問わない＝裸玉は1手1枚の打ちでは全拠点を守れない）
+    if(_okc&&_oppN2<=1&&CFG.razeMode!==1){   // 相手が盤上で裸玉なら拠点狩りを発動（持駒の有無は問わない＝裸玉は1手1枚の打ちでは全拠点を守れない）
       var _estr=[]; for(var _ekk in S.walls){ var _w2=S.walls[_ekk]; if(_w2.owner!==side&&!_w2.captured){ var _ea2=_ekk.split('_'); _estr.push([+_ea2[0],+_ea2[1]]); } }
       if(S.forts)for(var _eff in S.forts){ if(S.forts[_eff]!==side){ var _fa3=_eff.split('_'); _estr.push([+_fa3[0],+_fa3[1]]); } }
       if(_estr.length){
         var _razeBest=null,_razeKey=-1;   // 1) 敵拠点に乗って落とす手(只取られしない物)を採用。敵玉から遠い拠点ほど無防備なので優先。
         for(var _ri=0;_ri<moves.length;_ri++){ var _rm=moves[_ri]; if(_rm.fire||!_rm.to)continue; var _hit=false; for(var _si2=0;_si2<_estr.length;_si2++){ if(_estr[_si2][0]===_rm.to[0]&&_estr[_si2][1]===_rm.to[1]){_hit=true;break;} } if(!_hit)continue; if(_rm.from&&seeLosing(S,_rm,side))continue; var _df=Math.abs(_rm.to[0]-_okc[0])+Math.abs(_rm.to[1]-_okc[1]); if(_df>_razeKey){_razeKey=_df;_razeBest=_rm;} }
         if(_razeBest){ best=_razeBest; bestScore=WIN-2; }
-        else { var _appBest=null,_appKey=1e9;   // 2) まだ落とせない→最寄りの敵拠点へ最短接近する手(損しない物)を選ぶ＝着実に拠点へ寄せる。
+        else if(CFG.razeMode===0){ var _appBest=null,_appKey=1e9;   // 2) まだ落とせない→最寄りの敵拠点へ最短接近する手(損しない物)を選ぶ＝着実に拠点へ寄せる。
           for(var _ai2=0;_ai2<moves.length;_ai2++){ var _am=moves[_ai2]; if(_am.fire||!_am.to)continue; if(_am.from&&seeLosing(S,_am,side))continue; var _nd=1e9; for(var _si3=0;_si3<_estr.length;_si3++){ var _dd2=Math.abs(_am.to[0]-_estr[_si3][0])+Math.abs(_am.to[1]-_estr[_si3][1]); if(_dd2<_nd)_nd=_dd2; } if(_nd<_appKey){_appKey=_nd;_appBest=_am;} }
           if(_appBest){ best=_appBest; bestScore=Math.max(bestScore,500); } }
       }
@@ -1074,10 +1091,137 @@ function searchBest(pos){ TER=pos.terrain; FORTWIN=!!pos.fortWin; W=(pos.w?Objec
   }
   // 捕獲セーフティネット：詰み筋でなければ損しない取り(net≥0)を採用＝タダの大駒/駒得を確実に拾う。
   // （quiesの王手回避バグ修正で誤勝勢は解消済み。材料スケール化も実施。これは念のための保険で、取られ損は net<0 除外で指さない）。
-  if(!mustEscape&&!best.fire&&bestScore<WIN-1000){ var gc=bestForcedCap(S,side); if(gc){ best=gc.m; bestScore=Math.max(bestScore,gc.net); } }   // 王手回避中/火計採用時は上書きしない
+  if(!mustEscape&&!best.fire&&bestScore<WIN-1000){ var gc=bestForcedCap(S,side); if(gc&&(CFG.fcMargin>=1e9||!_rootSc||_rootSc[mvKey(gc.m)]===undefined||_rootSc[mvKey(gc.m)]>=bestScore-CFG.fcMargin)){
+      // ★取りの安全確認：その取りの後に相手の詰み筋があるなら取らない（自玉が詰まされる取りは「取れる駒」ではない）
+      var _fcOK=true; if(CFG.fcSafe&&mvKey(gc.m)!==mvKey(best)&&!(bestScore<=-(WIN-1000))){ var _sv=DEAD; DEAD=Date.now()+Math.max(60,Math.min(400,(pos.timeMs||2500)/5)); var _u=makeM(S,gc.m); if(!_u.terminal){ var _ov=nega(S,opp,Math.min(Math.max(done-1,2),5),WIN-1001,WIN-1000,1); if(_ov>=WIN-1000)_fcOK=false; } unmakeM(S,_u); DEAD=_sv; }
+      if(_fcOK){ best=gc.m; bestScore=Math.max(bestScore,gc.net); } } }   // 王手回避中/火計採用時は上書きしない
   var outMv = best.fire ? {from:best.from,to:best.to,fire:true} : (best.from===null ? {from:null,to:best.to,drop:best.drop} : {from:best.from,to:best.to});
   return { move:outMv, depth:done, score:Math.round(bestScore), nodes:NODES, ponder:!!pos.ponder }; }
 self.onmessage=function(e){ try{ postMessage(searchBest(e.data)); }catch(err){ postMessage({move:null,err:String(err)}); } };
+/* ===== 高速化ブロック(2026-10-21)：探索で使う合法手生成・王手判定・評価の前処理を軽くする。ルールは genMoves と完全一致（node で照合済み） ===== */
+var _KEY=[]; for(var _kr=0;_kr<N;_kr++){ _KEY[_kr]=[]; for(var _kc=0;_kc<N;_kc++)_KEY[_kr][_kc]=_kr+'_'+_kc; }
+var _RC={}; function rcOf(k){ var v=_RC[k]; if(!v){ var a=k.split('_'); v=_RC[k]=[+a[0],+a[1]]; } return v; }
+var _CROSS={P:1,PP:1,PN:1}, _FSTOP={R:1,B:1,L:1,N:1,PR:1,PB:1,PL:1,PN:1}, _GOLDL={G:1,PS:1,PN:1,PL:1,PP:1};
+var _ORTH=[[0,1],[0,-1],[1,0],[-1,0]], _DIAG=[[1,1],[1,-1],[-1,1],[-1,-1]];
+function _stepTo(board,grid,moves,rr,cc,player,blockRiver){ if(rr<0||rr>=N||cc<0||cc>=N)return false; var q=board[rr][cc]; if(q&&q.player===player)return false;
+  if(blockRiver&&grid[rr][cc]===TERRAIN.RIVER)return false; var cap=!!(q&&q.player!==player); moves.push({r:rr,c:cc,capture:cap}); return !cap; }
+function _slide(board,grid,moves,r,c,dr,dc,player,fences,forts){ var rr=r+dr,cc=c+dc;
+  while(rr>=0&&rr<N&&cc>=0&&cc<N){ if(grid[rr][cc]===TERRAIN.RIVER)break; var q=board[rr][cc]; if(q&&q.player===player)break;
+    var cap=!!q; moves.push({r:rr,c:cc,capture:cap});
+    var k=_KEY[rr][cc]; if(fences){ var fo=fences[k]; if(fo!==undefined&&fo!==player)break; } if(forts){ var ko=forts[k]; if(ko!==undefined&&ko!==player)break; }
+    if(cap)break; rr+=dr; cc+=dc; } }
+function genMoves(board,terrain,r,c,piece,fences,forts){
+  var grid=terrain.grid, moves=[], player=piece.player, t=piece.type, sg=player===0?1:-1;
+  var blockRiver=!!(terrain&&terrain.wideRiver)||!_CROSS[t];
+  if(t==="K"){ for(var i=0;i<8;i++){ var d=KING_DIRS[i]; _stepTo(board,grid,moves,r+d[0]*sg,c+d[1],player,blockRiver); } return moves; }
+  if(t==="R"||t==="PR"){ for(var i2=0;i2<4;i2++)_slide(board,grid,moves,r,c,_ORTH[i2][0],_ORTH[i2][1],player,fences,forts); if(t==="PR"){ for(var j2=0;j2<4;j2++)_stepTo(board,grid,moves,r+_DIAG[j2][0],c+_DIAG[j2][1],player,blockRiver); } return moves; }
+  if(t==="B"||t==="PB"){ for(var i3=0;i3<4;i3++)_slide(board,grid,moves,r,c,_DIAG[i3][0],_DIAG[i3][1],player,fences,forts); if(t==="PB"){ for(var j3=0;j3<4;j3++)_stepTo(board,grid,moves,r+_ORTH[j3][0],c+_ORTH[j3][1],player,blockRiver); } return moves; }
+  if(t==="L"){ _slide(board,grid,moves,r,c,-sg,0,player,fences,forts); return moves; }
+  if(t==="N"){ _stepTo(board,grid,moves,r-2*sg,c-1,player,blockRiver); _stepTo(board,grid,moves,r-2*sg,c+1,player,blockRiver); return moves; }
+  if(t==="P"){ _stepTo(board,grid,moves,r-sg,c,player,blockRiver); return moves; }
+  if(_GOLDL[t]){ for(var i4=0;i4<6;i4++){ var g4=GOLD_DIRS[i4]; _stepTo(board,grid,moves,r+g4[0]*sg,c+g4[1],player,blockRiver); } return moves; }
+  if(t==="S"){ for(var i5=0;i5<5;i5++){ var s5=SILVER_DIRS[i5]; _stepTo(board,grid,moves,r+s5[0]*sg,c+s5[1],player,blockRiver); } return moves; }
+  return moves; }
+function allMoves(board,terrain,player,fences,forts){ var list=[];
+  for(var r=0;r<N;r++){ var row=board[r]; for(var c=0;c<N;c++){ var pc=row[c];
+    if(pc&&pc.player===player){ var mv=genMoves(board,terrain,r,c,pc,fences,forts);
+      for(var i=0;i<mv.length;i++){ var m=mv[i]; list.push({from:[r,c],to:[m.r,m.c],capture:m.capture,piece:pc}); } } } }
+  return list; }
+// (tr,tc) に side の駒が「動いて入れる」か＝allMoves(side) のどれかの to が (tr,tc) か と同値（王手判定用）
+function sqAttacked(board,terrain,tr,tc,side,fences,forts){ var grid=terrain.grid, wide=!!terrain.wideRiver, tq=board[tr][tc];
+  if(tq&&tq.player===side)return false;
+  var tRiver=grid[tr][tc]===TERRAIN.RIVER; var sg=side===0?1:-1;
+  // 近接（1マス・桂）：攻め駒の位置 X=(tr,tc)-d
+  for(var dr=-2;dr<=2;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var xr=tr-dr,xc=tc-dc; if(xr<0||xr>=N||xc<0||xc>=N)continue; var p=board[xr][xc]; if(!p||p.player!==side)continue;
+    var t=p.type; if(tRiver&&(wide||!_CROSS[t]))continue; var br=dr*sg;   // 攻め側から見た基準方向（player0基準の dr）
+    if(dr===2||dr===-2){ if(t==="N"&&br===-2&&(dc===1||dc===-1))return true; continue; }
+    if(t==="K")return true;
+    if(t==="P"){ if(br===-1&&dc===0)return true; continue; }
+    if(_GOLDL[t]){ if(!(br===1&&dc!==0))return true; continue; }   // 金：後ろ斜め以外
+    if(t==="S"){ if(br===-1||(br===1&&dc!==0))return true; continue; }   // 銀：前3＋後ろ斜め
+    if(t==="PR"&&dc!==0&&dr!==0)return true; if(t==="PB"&&(dc===0||dr===0))return true; }
+  if(tRiver)return false;   // 飛角香は川マスに入れない
+  // 遠距離（飛角香・竜馬）：(tr,tc) から外へ走査
+  for(var ri=0;ri<8;ri++){ var d=KING_DIRS[ri], ddr=d[0], ddc=d[1], diag=(ddr!==0&&ddc!==0);
+    for(var s=1;s<N;s++){ var rr=tr+ddr*s, cc=tc+ddc*s; if(rr<0||rr>=N||cc<0||cc>=N)break; var q=board[rr][cc];
+      if(q){ if(q.player===side){ var qt=q.type;
+          if(!diag&&(qt==="R"||qt==="PR"))return true; if(diag&&(qt==="B"||qt==="PB"))return true;
+          if(qt==="L"&&ddc===0&&(-ddr)===-sg)return true; }   // 香の進行方向(-sg)＝(tr,tc)へ向かう向き(-ddr)
+        break; }
+      if(grid[rr][cc]===TERRAIN.RIVER)break;
+      var k=_KEY[rr][cc]; if(fences){ var fo=fences[k]; if(fo!==undefined&&fo!==side)break; } if(forts){ var ko=forts[k]; if(ko!==undefined&&ko!==side)break; } } }
+  return false; }
+function srvInCheck(S,sd){ var k=srvKingCell(S,sd); if(!k)return false; return sqAttacked(S.board,TER,k[0],k[1],1-sd,S.fences,S.forts); }
+var _KDR=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+
+function evalFast(S,side){ var b=S.board,g=TER.grid,C=(N-1)/2,MID=(N-1)/2,score=0,mk=null,ok=null; var isMtn=TER.castles&&!TER.castles[0].length&&!TER.castles[1].length;
+  // 拠点(城/砦)の位置を陣営別に前計算＝駒が敵拠点に隣接=制圧寸前を加点するため
+  var strong0=[],strong1=[]; for(var wk in S.walls){ var w=S.walls[wk]; if(!w.captured){ (w.owner===0?strong0:strong1).push(rcOf(wk)); } }
+  if(S.forts)for(var fk in S.forts){ (S.forts[fk]===0?strong0:strong1).push(rcOf(fk)); }
+  var _oppNonK=0; for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var pc=b[r][c]; if(!pc)continue; if(pc.type==="K"){ if(pc.player===side)mk=[r,c]; else ok=[r,c]; } else if(pc.player!==side)_oppNonK++; }
+  // 終盤の寄せモード：相手が裸玉寸前(非王駒≤1, 持駒≤1)。この時は通常の「敵陣へ展開」系の加点を切り、全駒を敵玉へ収束させて詰める。
+  var _mateMode=false; { if(mk&&ok&&_oppNonK<=1)_mateMode=true; }   // 相手が盤上で裸玉(非王駒≤1)なら寄せモード。持駒は条件にしない＝相手が駒を持ってても1手1枚しか打てず裸玉は拠点を守り切れないので拠点狩りを優先（実戦で大量駒得+裸玉なのに勝ち切れず引分のバグ修正）
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var pc=b[r][c]; if(!pc)continue; var mine=pc.player===side; var v=VALUE[pc.type]||1;
+    if(pc.type!=="K"){ var adv=pc.player===0?(N-1-r):r;
+      if(pc.promoted)v+=W.promoted;                        // 成り駒は素点+α＝駒成りを促す
+      else if((pc.type==='P'||pc.type==='L'||pc.type==='N'||pc.type==='S')&&adv>=N-3)v+=W.promoZone;  // 成れる位置＝成り直前を加点
+      v+=adv*W.adv; v+=(C-Math.abs(c-C))*W.center; if(pc.hidden&&g[r][c]===TERRAIN.FOREST)v+=W.hideForest;
+      var lng=(pc.type==='L'||pc.type==='R'||pc.type==='B'||pc.type==='PR'||pc.type==='PB'); if(lng)v+=adv*W.advLong;
+      if(adv===0&&(pc.type==='R'||pc.type==='B'||pc.type==='PR'||pc.type==='PB'))v-=W.bigHome;   // 大駒が自陣最後方で遊ぶ＝減点（前線で働かせる・後方シャッフル防止）
+      // 敵陣に踏み込むほど加点＝攻めの圧力。攻め駒(香飛角桂成香)は厚く。
+      var crossed = pc.player===0 ? (MID-r) : (r-MID); if(crossed>0){ v+=crossed*((lng||pc.type==='N'||pc.type==='PL'||pc.type==='PN')?W.crossAtk:W.cross); }
+      // 敵の城/砦に隣接＝制圧寸前(拠点全陥落=勝ちへの直行)を加点
+      var fst=pc.player===0?strong1:strong0; var dmin=99; for(var si=0;si<fst.length;si++){ var dr0=Math.abs(r-fst[si][0]),dc0=Math.abs(c-fst[si][1]); if(dr0<=1&&dc0<=1)v+=W.strongAdj; var md=dr0+dc0; if(md<dmin)dmin=md; }
+      if(dmin<99)v+=W.towardStrong*(_mateMode?3.5:1)/(1+dmin);   // ★敵拠点(城/砦)へ迫るほど加点＝寄せ(勝ち切り)の引力。終盤(相手裸玉)は静止した城/砦を落とす方が逃げる玉を追うより簡単なので強く引っ張る
+      // 香ロケット：敵拠点(城/砦)筋±2の香(成香)は前進ほど加点。攻城戦では守備側の香は敵「砦」筋を狙う＝fst(敵城+砦)で判定（城だけ見ると守備側が拠点を狙わずロケットが死ぬバグを修正）
+      if(pc.type==='L'||pc.type==='PL'){ for(var fi=0;fi<fst.length;fi++){ var dco=Math.abs(c-fst[fi][1]); if(dco<=2){ var av=adv<6?adv:6; v+=(3-dco)*(0.1+av*0.04)*W.rocket; } }
+        if(c===0||c===N-1){ var av2=adv<7?adv:7; v+=av2*W.edge; } }   // 端筋の香＝端攻め
+      var ek=mine?ok:mk; if(ek&&!_mateMode){ var dd=Math.abs(r-ek[0])+Math.abs(c-ek[1]); v+=(lng?3:2)/(3+dd)*W.towardK; } // 敵王へ寄せる。※終盤(相手裸玉)は王を追わず静止拠点を落とす＝towardKを切る(逃げる玉を追い回す無駄を排除)
+      if(mine){ if(ok){ var ach=Math.max(Math.abs(r-ok[0]),Math.abs(c-ok[1])); if(ach<=2)v+=(3-ach)*W.nearOK; } }
+      else if(mk){ var dch=Math.max(Math.abs(r-mk[0]),Math.abs(c-mk[1])); if(dch<=2)v+=(3-dch)*W.nearMK; } }
+    if(isMtn){ var exp=g[r][c]!==TERRAIN.FOREST;          // 山:森から出た駒は狙撃される=平地ペナルティ
+      if(pc.type==="K"){ v+= exp? -7 : 3; }                                              // 王は森に隠れる
+      else if(pc.type==='R'||pc.type==='B'||pc.type==='PR'||pc.type==='PB'){ var ad2=pc.player===0?(N-1-r):r; v+= exp? -(4+ad2*0.7) : 1.5; } // 大駒は森で温存・平地に出さない
+      else if(pc.type==='L'||pc.type==='PL'){ v+= exp? -1.2 : 0.5; } }
+    score+=mine?v:-v; }
+  var h=S.hand; if(h){ var hs=h[side]||[],ho=h[1-side]||[]; for(var i=0;i<hs.length;i++)score+=(VALUE[hs[i]]||1)*W.hand; for(var j=0;j<ho.length;j++)score-=(VALUE[ho[j]]||1)*W.hand; }
+  for(var k in S.walls){ var w=S.walls[k]; if(w.captured)score+=(w.owner===side?1:-1)*W.wallCap; }   // 城制圧
+  // 砦の支配差＝勝利条件(全拠点陥落)直結。敵砦を1つ落とすほど大きく加点＝攻め拠点を取りに行く（多少の駒損を許して突破する動機）
+  if(W.fortCtrl&&S.forts){ var _ms=0,_os=0; for(var _fk2 in S.forts){ if(S.forts[_fk2]===side)_ms++; else _os++; } score+=(_ms-_os)*W.fortCtrl; }
+  function onCastle(kk,owner){ if(!kk||g[kk[0]][kk[1]]!==TERRAIN.CASTLE)return false; var ww=S.walls[kk[0]+'_'+kk[1]]; return !!(ww&&ww.owner===owner&&!ww.captured); }
+  score+=onCastle(mk,side)?W.onCastleMe:0; score-=onCastle(ok,1-side)?W.onCastleOpp:0; // 王は自城に留まる
+  { var mycs2=TER.castles&&TER.castles[side]; if(mycs2)for(var cj=0;cj<mycs2.length;cj++){ var p2=b[mycs2[cj][0]][mycs2[cj][1]]; if(p2&&p2.player===side&&p2.type!=="K")score-=W.emptyCastle; } }   // 非王駒が自城に居る＝王不在がバレる→減点
+  if(mk){ var mcs=TER.castles&&TER.castles[side]; if(mcs&&mcs.length){ var bd=99; for(var ci=0;ci<mcs.length;ci++){ var d0=Math.abs(mk[0]-mcs[ci][0])+Math.abs(mk[1]-mcs[ci][1]); if(d0<bd)bd=d0; } score-=bd*W.kingHome; } }   // 王は城から飛び出さない
+  function ar(kk,o){ if(!kk)return 0; var n2=0; for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var rr=kk[0]+dr,cc=kk[1]+dc; if(rr<0||rr>=N||cc<0||cc>=N)continue; var p=b[rr][cc]; if(p&&p.player===o)n2++; } return n2; }
+  score+=ar(mk,side)*W.guard; score-=ar(ok,1-side)*W.guard;   // 玉の周りの味方数
+  // 玉安全：自玉への敵の直線(飛・香)・斜め(角)の利き(開いた筋)を強く減点。守り(柵/味方)で塞いでいれば安全。
+  if(mk){ var _khid=b[mk[0]][mk[1]]&&b[mk[0]][mk[1]].hidden; score-=kingDanger(b,mk[0],mk[1],1-side,side===0?-1:1,side,S)*(_khid?2.5:W.kdSelf); }   // 自王の危険。隠れていれば割引。
+  if(ok){ var _kohid=b[ok[0]][ok[1]]&&b[ok[0]][ok[1]].hidden; score+=kingDanger(b,ok[0],ok[1],side,(1-side)===0?-1:1,1-side,S)*(_kohid?2.5:W.kdOpp); }   // 敵王への攻め。隠れていれば割引。
+  return score; }
+var _DMARK=new Uint8Array(N*N);
+function dropCells(S,side,free){ var mk=_DMARK, any=false; mk.fill(0);
+  for(var k in S.walls){ if(S.walls[k].owner===side){ var a=rcOf(k),br=a[0],bc=a[1];
+    for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ var r=br+dr,c=bc+dc; if(r<0||r>=N||c<0||c>=N)continue; mk[r*N+c]=1; any=true; } } }
+  var F=S.forts; if(F){ for(var fk in F){ if(F[fk]===side){ var b=rcOf(fk),fr=b[0],fc=b[1];
+    for(var dr2=-1;dr2<=1;dr2++)for(var dc2=-1;dc2<=1;dc2++){ var r2=fr+dr2,c2=fc+dc2; if(r2<0||r2>=N||c2<0||c2>=N)continue; mk[r2*N+c2]=1; any=true; } } } }
+  var out=[]; if(!any)return out; var B=S.board, G=TER.grid;
+  for(var rr=0;rr<N;rr++)for(var cc=0;cc<N;cc++){ if(!mk[rr*N+cc])continue; if(B[rr][cc])continue; if(G[rr][cc]===TERRAIN.RIVER)continue;
+    if(free){ out.push([rr,cc]); continue; }
+    var contested=false; for(var ar=-1;ar<=1&&!contested;ar++)for(var ac=-1;ac<=1;ac++){ if(!ar&&!ac)continue; var er=rr+ar,ec=cc+ac; if(er<0||er>=N||ec<0||ec>=N)continue; var ep=B[er][ec]; if(ep&&ep.player!==side){contested=true;break;} }
+    if(contested) out.push([rr,cc]); }
+  return out; }
+function kingDanger(b,kr,kc,enemy,feDir,defSide,S){ var dng=0, fen=S.fences, frt=S.forts, rays=_KDR;
+  for(var ri=0;ri<8;ri++){ var dr=rays[ri][0],dc=rays[ri][1], diag=(dr!==0&&dc!==0);
+    for(var s=1;s<N;s++){ var r=kr+dr*s,c=kc+dc*s; if(r<0||r>=N||c<0||c>=N)break;
+      var k=_KEY[r][c]; if((fen&&fen[k]===defSide)||(frt&&frt[k]===defSide)){ if(CFG.kdF1||CFG.kdF2){ if(!b[r][c]){ for(var s2=s+1;s2<N;s2++){ var r2=kr+dr*s2,c2=kc+dc*s2; if(r2<0||r2>=N||c2<0||c2>=N)break; var q=b[r2][c2]; if(!q)continue; if(q.player===enemy){ var qt=q.type; if((!diag&&(qt==='R'||qt==='PR'))||(diag&&(qt==='B'||qt==='PB'))||(!diag&&dc===0&&dr===feDir&&qt==='L'))dng+=(s===1?CFG.kdF1:CFG.kdF2); } break; } } } break; }
+      var p=b[r][c]; if(!p)continue;
+      if(p.player===enemy){ var t=p.type;
+        if(!diag&&(t==='R'||t==='PR'))dng+=1;
+        else if(!diag&&dc===0&&dr===feDir&&t==='L')dng+=1;
+        else if(diag&&(t==='B'||t==='PB'))dng+=1;
+        if(s===1)dng+=0.4; }
+      break; } }
+  return dng; }
 </script>
 <script>
 window.addEventListener('error',function(e){try{var l=document.getElementById('loading');if(l){l.style.display='flex';l.style.color='#ff8a6a';l.style.whiteSpace='pre-wrap';l.style.padding='16px';l.style.fontSize='13px';l.textContent='読み込みエラー:\n'+((e&&e.message)||e)+'\n'+((e&&e.filename)||'')+' '+((e&&e.lineno)||'');}}catch(_){}});
@@ -1403,6 +1547,9 @@ function pickSiegePlacement(terrain,side,army){
     const deepRows=fenceRows(side); const isForest=(r,c)=>grid[r][c]===TERRAIN.FOREST;
     king = forts.find(([r,c])=>isForest(r,c)&&deepRows.includes(r)) || forts.find(([r,c])=>isForest(r,c)) || forts.find(([r,c])=>deepRows.includes(r)) || forts[0];
     /* 王は砦マス上なので used には既に入っている */ }
+  const _sfen=[]; if(!isDef){ const fr=fenceRows(side); const cand=[[fwd,0],[fwd,-1],[fwd,1],[0,-1],[0,1],[2*fwd,0],[2*fwd,-1],[2*fwd,1]];
+    for(const [dr,dc] of cand){ if(_sfen.length>=3)break; const r=king[0]+dr,c=king[1]+dc; if(!inB(r,c)||!fr.includes(r)||blocked(r,c)||used.has(r+'_'+c))continue; _sfen.push(r+'_'+c); used.add(r+'_'+c); }
+    const rest=[]; for(const r of fr)for(let c=0;c<N;c++){ if(blocked(r,c)||used.has(r+'_'+c))continue; rest.push([Math.abs(r-king[0])+Math.abs(c-king[1]),r,c]); } rest.sort((a,b)=>a[0]-b[0]); for(const [,r,c] of rest){ if(_sfen.length>=3)break; _sfen.push(r+'_'+c); used.add(r+'_'+c); } }
   // 金銀で王を固める
   const around=[[0,-1],[0,1],[-fwd,-1],[-fwd,1],[-fwd,0],[fwd,0]];
   const nearKing=(t)=>{ for(const [dr,dc] of around){ const r=king[0]+dr,c=king[1]+dc; if(inB(r,c)&&!blocked(r,c)&&!used.has(r+'_'+c)&&inZone(r,c)){take(t);place(t,r,c);return true;} } return false; };
@@ -1426,7 +1573,7 @@ function pickSiegePlacement(terrain,side,army){
   const pawnFront=(r,c)=>{ const pr=r+fwd; if(has('P')&&inB(pr,c)&&!blocked(pr,c)&&!used.has(pr+'_'+c)&&inZone(pr,c)){take('P');place('P',pr,c);} };
   for(const pp of pieces.filter(p=>p.type==='L')) pawnFront(pp.r,pp.c);
   for(const t of Object.keys(counts)){ while(counts[t]>0){ if(!forward(t))break; } }
-  return {king,pieces,fences:[],forts};
+  return {king,pieces,fences:_sfen,forts};
 }
 // 山のAI布陣: 王は最深3行の「森」に隠す。砦3つ・柵3つも森を最優先で散在/王前を塞ぐ。大駒(飛角)は後方の森に温存し平地に出さない。
 function pickMountainPlacement(terrain,side,army){
@@ -1486,7 +1633,7 @@ function pickPlacementForTerrain(terrain,side,army,fenceMax=3,oppBoard=null,oppF
   // 王＝敵城から遠い／川筋の自城（攻めと逆サイドに置いて攻守を分離）
   let king=myCastles[0]||[side===0?N-1:0, Math.round(CENTER)], kbest=-1e9;
   for(const [r,c] of myCastles){ let s=0; if(colRiver[c]>0)s+=8; for(const [,ec] of enemyCastles) s+=Math.abs(ec-c); if(s>kbest){kbest=s;king=[r,c];} }
-  used.add(king[0]+'_'+king[1]);
+  used.add(king[0]+'_'+king[1]); for(const [dr,dc] of [[2*fwd,0],[2*fwd,-1],[2*fwd,1]]){ const r=king[0]+dr,c=king[1]+dc; if(fenceSet.size>=fenceMax)break; if(fenceRows(side).includes(r)&&free(r,c))fenceSet.add(r+'_'+c); }
   const counts={}; for(const t of army)counts[t]=(counts[t]||0)+1; const has=t=>counts[t]>0, take=t=>{counts[t]--;};
   const pieces=[]; const place=(t,r,c)=>{pieces.push({type:t,r,c});used.add(r+'_'+c);};
   // 攻撃目標＝敵城の筋。開いている筋を優先し、王から遠い筋を主目標に（最大2本に集中）
@@ -1545,7 +1692,7 @@ function pickPlacementForTerrain(terrain,side,army,fenceMax=3,oppBoard=null,oppF
   for(const r of (side===0?[...home].sort((a,b)=>a-b):[...home].sort((a,b)=>b-a))){ for(let c=0;c<N;c++){ if(!has('P'))break; if(free(r,c)){take('P');place('P',r,c);} } }
   // --- 柵（最大fenceMax）＝王の前/横を塞ぐ（守りの壁）---
   const fenceCand=[[fwd,0],[fwd,-1],[fwd,1],[0,-1],[0,1],[2*fwd,0],[2*fwd,-1],[2*fwd,1]].map(([dr,dc])=>[king[0]+dr,king[1]+dc]);
-  for(const g of fenceCand){ if(fenceSet.size>=fenceMax)break; if(free(g[0],g[1])){ fenceSet.add(g[0]+'_'+g[1]); } }
+  for(const g of fenceCand){ if(fenceSet.size>=fenceMax)break; if(fenceRows(side).includes(g[0])&&free(g[0],g[1])){ fenceSet.add(g[0]+'_'+g[1]); } } { const _fc=[]; for(const r of fenceRows(side))for(let c=0;c<N;c++){ if(free(r,c))_fc.push([Math.abs(r-king[0])+Math.abs(c-king[1]),r,c]); } _fc.sort((a,b)=>a[0]-b[0]); for(const [,r,c] of _fc){ if(fenceSet.size>=fenceMax)break; fenceSet.add(r+'_'+c); } }
   const fences=[...fenceSet];
   // --- 余り駒を埋める ---
   for(const t of Object.keys(counts)){ while(counts[t]>0){ let put=null; for(const r of home){for(let c=0;c<N;c++)if(free(r,c)){put=[r,c];break;}if(put)break;} if(!put)break; take(t);place(t,put[0],put[1]); } }
@@ -1977,7 +2124,11 @@ function layout(){ relayout(); }
    ===================================================================================== */
 let state=null, humanFirst=true, handLimit=20, showEnemy=false;
 let undoStack=[], density="normal";
-let AI_TIME=2500, aiWorker=null, aiBusy=false;
+// 強さの段階（2026-10-21 自己対局で調整）：[思考時間ms, 名前]。段階ごとの探索設定は AI_LEVEL_CFG（Worker の CFG を上書き）
+const AI_LEVELS=[[300, "弱"], [500, "普通"], [1200, "強"], [2500, "最強"], [5000, "鬼"]];
+const AI_LEVEL_CFG={"300": {"maxDepth": 1, "noise": 8, "rnd": 0.3, "rndRaw": 1, "rndFc": 0}, "500": {"maxDepth": 2, "rnd": 0.2, "rndRaw": 1, "rndFc": 0}, "1200": {"rnd": 0.1, "rndRaw": 1, "rndFc": 0}, "2500": {"rnd": 0.05, "rndRaw": 1, "rndFc": 0}, "5000": null};
+function aiCfg(){ return AI_LEVEL_CFG[String(AI_TIME)]||null; }
+let AI_TIME=1200, aiWorker=null, aiBusy=false;
 // 先読み(ponder)：あなたの手番の間も裏でフル探索を回し、置換表を温めて本譜の読みを深くする。盤面は一切変えない。
 let ponderOn=true, pondering=false, ponderFresh=true, ponderedTurn=false; const PONDER_CHUNK=500;
 function ponderOK(){ return ponderOn && !online && aiWorker && state && state.phase==="play" && state.turn===ME && state.winner===null && !aiBusy && AI_TIME>=2500 && (typeof huangManualPending!=="function"||!huangManualPending()); }
@@ -2008,7 +2159,7 @@ function glogEnd(){ if(!GLOG||GLOG.saved||state.winner===null)return; GLOG.saved
 function exportTrain(){ try{ var data=localStorage.getItem('tshogi_train')||'[]'; var n=JSON.parse(data).length; var blob=new Blob([data],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='tshogi_train.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(url);},1000); setMsg('学習データを書き出しました（'+n+'局）。ファイルを渡してくれれば評価を学習します。'); }catch(e){ setMsg('書き出し失敗:'+e); } }
 window.__exportTrain=exportTrain; window.__trainCount=function(){ try{ return JSON.parse(localStorage.getItem('tshogi_train')||'[]').length; }catch(e){ return 0; } };
 function startPonder(){ if(pondering||!ponderOK())return; pondering=true; ponderedTurn=true; var keep=!ponderFresh; ponderFresh=false;
-  var pos={board:state.board,terrain:terrain,walls:state.walls,fences:state.fences,forts:fortMap(),hand:state.hand,side:ME,timeMs:PONDER_CHUNK,ply:(state.history?state.history.length:0),fortWin:(isMountain()||isSiege()),ponder:true,keepTT:keep,recent:recentMoves()};
+  var pos={board:state.board,terrain:terrain,walls:state.walls,fences:state.fences,forts:fortMap(),hand:state.hand,side:ME,cfg:aiCfg(),timeMs:PONDER_CHUNK,ply:(state.history?state.history.length:0),fortWin:(isMountain()||isSiege()),ponder:true,keepTT:keep,recent:recentMoves()};
   try{ aiWorker.postMessage(pos); }catch(e){ pondering=false; } }
 function stopPonder(){ pondering=false; ponderFresh=true; }
 const KANJI=["一","二","三","四","五","六","七","八","九","十","十一","十二"];
@@ -2192,7 +2343,11 @@ function placeGuanduCaoAI(side){ const sc=scenario; const g=terrain.grid; const 
   let Nn=need.N; for(const r of [7,6]){ for(const cc of cross){ for(const c of [cc,cc-1,cc+1]){ if(Nn<=0)break; if(free(r,c)){put('N',r,c);Nn--;} } } }
   while(Nn>0){ let ok=false; for(const r of [7,6,8]){ for(let c=0;c<N;c++){ if(free(r,c)){put('N',r,c);Nn--;ok=true;break;} } if(ok)break; } if(!ok)break; }
   // --- 角：渡し(5,cross)を通る斜め線上の南マスへ＝渡って成り込み馬を狙う ---
-  if(need.B>0){ let best=null; for(const cc of cross){ for(const dc of [1,-1]){ for(let k=1;k<=5;k++){ const r=5+k,c=cc+dc*k; if(free(r,c)){ best=[r,c]; break; } } if(best)break; } if(best)break; }
+  if(need.B>0){ let best=null;
+    // 初期配置から敵玉(城)を斜めに直射する位置は避ける＝袁紹側は一手目が許攸の寝返り(自動)で応手できず、初手で玉を取られて終わるため（許攸の金は寝返りで消える前提で判定）
+    const kingHit=(r,c)=>{ for(const [dr,dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]){ let rr=r+dr,cc=c+dc; while(inB(rr,cc)){ if(g[rr][cc]===TERRAIN.RIVER)break; if((sc.aiKingCells||[]).some(k=>k[0]===rr&&k[1]===cc))return true; const q=state.board[rr][cc]; if(q&&!q.defector)break; rr+=dr; cc+=dc; } } return false; };
+    for(const cc of cross){ for(const dc of [1,-1]){ for(let k=1;k<=5;k++){ const r=5+k,c=cc+dc*k; if(free(r,c)&&!kingHit(r,c)){ best=[r,c]; break; } } if(best)break; } if(best)break; }
+    if(!best){ for(let r=6;r<=10;r++)for(let c=0;c<N;c++){ if(free(r,c)&&!kingHit(r,c)){best=[r,c];break;} } }
     if(!best){ for(let r=6;r<=10;r++)for(let c=0;c<N;c++){ if(free(r,c)){best=[r,c];break;} } }
     if(best) put('B',best[0],best[1]); }
 }
@@ -2460,12 +2615,12 @@ function afterHuman(){ stopPonder(); glogPush(); syncScene(); renderHUD(); if(en
 let aiTimer=null, aiWatchdog=null;
 function clearWatchdog(){ if(aiWatchdog){ clearTimeout(aiWatchdog); aiWatchdog=null; } }
 // ウォッチドッグ：worker が時間内に手を返さない/固まった時、メインスレッドの同期探索で必ず一手指して対局を止めない
-function aiFallback(reason){ clearWatchdog(); if(!state||state.phase!=="play"||state.turn!==OPP||state.winner!==null)return; try{ var fb=searchBestMoveAdv(state.board,terrain,state.walls,state.fences,fortMap(),state.hand,OPP,(AI_TIME>=6000?6:AI_TIME>=2500?5:AI_TIME>=800?4:3)); onAiResult({move:fb,_fallback:true}); }catch(e){ try{console.warn('aiFallback失敗',reason,e);}catch(_){}} }
+function aiFallback(reason){ clearWatchdog(); if(!state||state.phase!=="play"||state.turn!==OPP||state.winner!==null)return; try{ var fb=searchBestMoveAdv(state.board,terrain,state.walls,state.fences,fortMap(),state.hand,OPP,(AI_TIME>=2500?5:AI_TIME>=500?4:3)); onAiResult({move:fb,_fallback:true}); }catch(e){ try{console.warn('aiFallback失敗',reason,e);}catch(_){}} }
 (function(){ try{ var src=document.getElementById('aiwsrc').textContent; var blob=new Blob([src],{type:'text/javascript'}); aiWorker=new Worker(URL.createObjectURL(blob)); aiWorker.onmessage=function(e){ onAiResult(e.data); }; aiWorker.onerror=function(ev){ try{ev.preventDefault&&ev.preventDefault();}catch(_){} try{console.warn('AI worker error',ev&&ev.message);}catch(_){} aiFallback('workererror'); }; }catch(err){ aiWorker=null; } })();
 function onAiResult(res){ window.__aiInfo=res;
   if(res&&res.ponder){ pondering=false; window.__ponderInfo=res; if(ponderOK())startPonder(); return; }   // 先読み結果＝盤面は変えない。手番が続く限り次のチャンクを回す（置換表を温め続ける）
   clearWatchdog(); aiBusy=false; if(!state||state.phase!=="play"||state.turn!==OPP||state.winner!==null)return; var best=res&&res.move;
-  if(!best&&!(res&&res._fallback)){ try{console.warn('AI null move',res&&res.err);}catch(_){} try{ best=searchBestMoveAdv(state.board,terrain,state.walls,state.fences,fortMap(),state.hand,OPP,(AI_TIME>=6000?6:AI_TIME>=2500?5:AI_TIME>=800?4:3)); }catch(e){ best=null; } }   // worker例外/null＝即負けにせず同期探索で指し直す
+  if(!best&&!(res&&res._fallback)){ try{console.warn('AI null move',res&&res.err);}catch(_){} try{ best=searchBestMoveAdv(state.board,terrain,state.walls,state.fences,fortMap(),state.hand,OPP,(AI_TIME>=2500?5:AI_TIME>=500?4:3)); }catch(e){ best=null; } }   // worker例外/null＝即負けにせず同期探索で指し直す
   if(!best){ state.winner=ME; state.phase="over"; syncScene(); renderHUD(); endBanner(); return; }
   try{
     if(best.fire){ executeFire(OPP,best.from[0],best.from[1]); buildFeatures(); }
@@ -2482,9 +2637,9 @@ function aiMove(){ if(state.phase!=="play"||state.turn!==OPP||state.winner!==nul
   if(maybeGuanduAuto()){ if(endCheck())return; if(state.turn===OPP)scheduleAI(); else setMsg("許攸（10二の金）が裏切った！金が曹操の持ち駒になり、烏巣（森に隠れた砦）の位置がバレた。あなたの手番。"); return; }
   aiBusy=true; setMsg("敵軍 思考中…");
   var keep=ponderedTurn; ponderedTurn=false; ponderFresh=true; pondering=false;   // 先読みで温めた置換表を本譜に引き継ぐ（pondした手番のみ）
-  var pos={board:state.board,terrain:terrain,walls:state.walls,fences:state.fences,forts:fortMap(),hand:state.hand,side:OPP,timeMs:AI_TIME,ply:(state.history?state.history.length:0),fortWin:(isMountain()||isSiege()),keepTT:keep,recent:recentMoves(),coach:(online?null:coachDirective)};
+  var pos={board:state.board,terrain:terrain,walls:state.walls,fences:state.fences,forts:fortMap(),hand:state.hand,side:OPP,cfg:aiCfg(),timeMs:AI_TIME,ply:(state.history?state.history.length:0),fortWin:(isMountain()||isSiege()),keepTT:keep,recent:recentMoves(),coach:(online?null:coachDirective)};
   if(aiWorker){ aiWorker.postMessage(pos); clearWatchdog(); aiWatchdog=setTimeout(function(){ aiWatchdog=null; if(aiBusy)aiFallback('timeout'); }, AI_TIME+5000); }   // 制限時間+5秒で返事が無ければ同期探索でフォールバック
-  else { var best=searchBestMoveAdv(state.board,terrain,state.walls,state.fences,fortMap(),state.hand,OPP,(AI_TIME>=6000?6:AI_TIME>=2500?5:AI_TIME>=800?4:3)); onAiResult({move:best}); } }
+  else { var best=searchBestMoveAdv(state.board,terrain,state.walls,state.fences,fortMap(),state.hand,OPP,(AI_TIME>=2500?5:AI_TIME>=500?4:3)); onAiResult({move:best}); } }
 function endCheck(){ if(state.winner!==null){ state.phase="over"; endBanner(); return true; } const mv=allMoves(state.board,terrain,state.turn,state.fences,fortMap()); if(mv.length===0&&state.hand[state.turn].length===0){ state.winner=1-state.turn; state.phase="over"; endBanner(); return true; } return false; }
 
 /* =====================================================================================
@@ -2656,7 +2811,7 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
   const card=el('div','card'); panel.appendChild(card);
   const row=(cls)=>{ const r=el('div','row'+(cls?' '+cls:'')); card.appendChild(r); return r; };
   const btn=(r,txt,on,fn,cls)=>{ const b=el('button','btn'+(on?' '+(cls||'on'):''),txt); b.onclick=fn; r.appendChild(b); return b; };
-  const aiRow=()=>{ const rs=row('tight'); rs.appendChild(el('span','lbl','AI')); for(const a of [[400,'弱'],[1200,'普通'],[2500,'強'],[12000,'最強'],[60000,'鬼']]) btn(rs,a[1],AI_TIME===a[0],()=>{ AI_TIME=a[0]; renderHUD(); }); };
+  const aiRow=()=>{ const rs=row('tight'); rs.appendChild(el('span','lbl','AI')); for(const a of AI_LEVELS) btn(rs,a[1],AI_TIME===a[0],()=>{ AI_TIME=a[0]; renderHUD(); }); };
   const lvRows=(autoFn)=>{
     const rl=row('tight'); rl.appendChild(el('span','lbl','上限Lv')); const sq=(t,fn)=>{ const b=el('button','sq',t); b.onclick=fn; rl.appendChild(b); }; sq('－',()=>changeHandLimit(handLimit-1)); rl.appendChild(el('span','lbl sm',String(handLimit))); sq('＋',()=>changeHandLimit(handLimit+1)); for(const v of [10,20,30,40]) btn(rl,''+v,handLimit===v,()=>changeHandLimit(v));
     const r3=row('tight scroll'); for(const p of PICKABLE){ const cnt=reserve.filter(t=>t===p.type).length; const pk=el('div','pick'); pk.appendChild(el('div','k',PIECE[p.type].label)); pk.appendChild(el('div','lv','Lv'+p.lv)); pk.appendChild(el('div','cnt','×'+cnt)); const pm=el('div','pm'); const mn=el('button',null,'－'); mn.onclick=()=>removeReserve(p.type); const pl=el('button',null,'＋'); pl.onclick=()=>addReserve(p.type,p.lv,p.max); pm.appendChild(mn); pm.appendChild(pl); pk.appendChild(pm); r3.appendChild(pk); }
@@ -2685,7 +2840,7 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
       if(isSiege()){ r1.appendChild(el('span','lbl','役割')); btn(r1,'攻め(砦)',ME===0,()=>{ setSide(0); placeCamera(); enterArmy(); },'you'); btn(r1,'守り(城)',ME===1,()=>{ setSide(1); placeCamera(); enterArmy(); }); }
       else { r1.appendChild(el('span','lbl','手番')); btn(r1,'先攻',humanFirst,()=>{humanFirst=true; renderHUD(); document.getElementById('btnFirst').textContent='先攻：あなた'; document.getElementById('btnFirst').className='btn you';},'you'); btn(r1,'後攻',!humanFirst,()=>{humanFirst=false; renderHUD(); document.getElementById('btnFirst').textContent='先攻：敵軍'; document.getElementById('btnFirst').className='btn';}); }
       r1.appendChild(el('span','lbl','森・川')); for(const a of [['sparse','少'],['normal','普'],['dense','多']]) btn(r1,a[1],density===a[0],()=>{ density=a[0]; newTerrain(false); enterArmy(); });
-      r1.appendChild(el('span','lbl','AI')); for(const a of [[400,'弱'],[1200,'普通'],[2500,'強'],[12000,'最強'],[60000,'鬼']]) btn(r1,a[1],AI_TIME===a[0],()=>{ AI_TIME=a[0]; renderHUD(); });
+      r1.appendChild(el('span','lbl','AI')); for(const a of AI_LEVELS) btn(r1,a[1],AI_TIME===a[0],()=>{ AI_TIME=a[0]; renderHUD(); });
       const r2=lvRows(autoArmy); btn(r2,'配置へ →',true,enterPlacement,'go');
     }
   } else if(state.phase==="placement"){
