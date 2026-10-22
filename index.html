@@ -9,6 +9,23 @@
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { margin:0; height:100%; background:var(--ink); overflow:hidden; font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif; color:var(--paper); }
   #app { position:fixed; inset:0; }
+  .srow { display:flex; align-items:center; gap:8px; margin:5px 0; }
+  .slbl { flex:0 0 4.6em; font-size:11px; font-weight:800; color:var(--gold); letter-spacing:1px; line-height:1.2; white-space:nowrap; }
+  .sbtns { flex:1 1 auto; min-width:0; display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+  .sbtns.scroll { flex-wrap:nowrap; }
+  .sname { font-size:13px; font-weight:800; color:#fff; padding:0 4px; }
+  .sname.none { color:var(--mute); font-weight:700; }
+  .sval { font-size:12px; font-weight:800; color:var(--paper); min-width:2.2em; text-align:center; }
+  @media (min-width:900px){ #panel .srow { display:inline-flex; width:calc(50% - 6px); vertical-align:middle; margin-right:6px; } #panel .srow.full { display:flex; width:auto; margin-right:0; } }
+  .sacts { display:flex; flex-wrap:wrap; gap:5px; justify-content:flex-end; margin:6px 0 2px; }
+  #olForm { max-width:340px; margin:0 auto 8px; text-align:left; }
+  .cfigs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin:6px 0 8px; }
+  .cfig { margin:0; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:4px 4px 3px; }
+  .cfig svg { display:block; }
+  .cfig figcaption { font-size:11.5px; text-align:center; color:#f1e6cc; margin-top:2px; }
+  #chkcap { position:fixed; z-index:40; pointer-events:none; transform:translate(-50%,-100%); font:900 24px/1 "Yu Mincho","Hiragino Mincho ProN",serif; color:#fff; letter-spacing:.12em; padding:4px 12px 6px; border-radius:8px; background:rgba(120,10,6,.72); border:1px solid rgba(255,140,120,.8); text-shadow:0 0 8px #ff3a20; opacity:0; }
+  #chkcap.on { animation:chkcap 1.25s ease-out forwards; }
+  @keyframes chkcap { 0%{opacity:0;transform:translate(-50%,-80%) scale(.8)} 14%{opacity:1;transform:translate(-50%,-100%) scale(1.06)} 70%{opacity:1;transform:translate(-50%,-100%) scale(1)} 100%{opacity:0;transform:translate(-50%,-112%) scale(1)} }
   canvas { display:block; touch-action:none; position:absolute; top:0; left:0; }
   .hud { position:absolute; pointer-events:none; }
   #top { top:0; left:0; right:0; padding:6px 8px; display:flex; gap:5px; align-items:center; overflow-x:auto; white-space:nowrap; scrollbar-width:none;
@@ -123,7 +140,7 @@
 <div id="title">
   <div class="tcard">
     <div class="tlogo">地形将棋<span class="seal">三國</span></div>
-    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-22-terrain3d</span></div>
+    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-23-cliff2</span></div>
     <button class="btn go big" id="tAI">コンピューターと対戦</button>
     <button class="btn big" id="tOnline" style="background:linear-gradient(180deg,#6f4a9a,#4b2f6e);color:#fff;border-color:#b797e0">オンライン対戦</button>
     <button class="btn big" id="tRules">ルール</button>
@@ -131,13 +148,15 @@
     <button class="btn" id="tExport" style="font-size:11px;margin-top:4px">学習データ書き出し（<span id="tTrainN">0</span>局）</button>
     <div class="tnote" id="tnote"></div>
     <div id="online" style="display:none;margin-top:14px;border-top:1px solid var(--gold2);padding-top:14px">
-      <input id="olName" placeholder="名前" maxlength="12" style="width:200px;margin:0 auto 8px;display:block">
-      <div id="olHostOpts" style="margin:6px 0;font-size:12px;color:var(--mute)">
-        <div class="row" style="justify-content:center"><span class="lbl">マップ</span><button class="btn on" id="olMapPlain">平地戦</button><button class="btn" id="olMapSiege">攻城戦</button><button class="btn" id="olMapMountain">山</button><button class="btn" id="olMapS3D">シナリオ</button></div>
-        <div class="row" id="olS3DRow" style="display:none;justify-content:center"><select id="olS3D" style="padding:7px 10px;border-radius:5px;border:1px solid var(--gold2);background:var(--lac2);color:var(--paper);font-weight:800;font-size:13px"></select></div>
-        <div class="row" id="olS3DSideRow" style="display:none;justify-content:center"><span class="lbl">陣営</span><button class="btn on" id="olS3DSide0">先</button><button class="btn" id="olS3DSide1">後</button></div>
-        <div class="row" id="olRoleRow" style="display:none;justify-content:center"><span class="lbl">役割</span><button class="btn on" id="olRoleAtk">攻め(砦)</button><button class="btn" id="olRoleDef">守り(城)</button></div>
-        <div class="row" id="olLvRow" style="justify-content:center"><span class="lbl">合計Lv</span><button class="btn" id="olLv10">10</button><button class="btn on" id="olLv20">20</button><button class="btn" id="olLv30">30</button><button class="btn" id="olLv40">40</button></div>
+      <div id="olForm">
+        <div class="srow"><span class="slbl">名前</span><div class="sbtns"><input id="olName" placeholder="名前" maxlength="12" style="width:100%;max-width:220px"></div></div>
+        <div id="olHostOpts">
+        <div class="srow"><span class="slbl">マップ</span><div class="sbtns"><button class="btn on" id="olMapPlain">平地戦</button><button class="btn" id="olMapSiege">攻城戦</button><button class="btn" id="olMapMountain">山</button><button class="btn" id="olMapS3D">シナリオ</button></div></div>
+        <div class="srow" id="olS3DRow" style="display:none"><span class="slbl">物語</span><div class="sbtns"><select id="olS3D" style="padding:7px 10px;border-radius:5px;border:1px solid var(--gold2);background:var(--lac2);color:var(--paper);font-weight:800;font-size:13px;max-width:100%"></select></div></div>
+        <div class="srow" id="olS3DSideRow" style="display:none"><span class="slbl">陣営</span><div class="sbtns"><button class="btn on" id="olS3DSide0">先</button><button class="btn" id="olS3DSide1">後</button></div></div>
+        <div class="srow" id="olRoleRow" style="display:none"><span class="slbl">役割</span><div class="sbtns"><button class="btn on" id="olRoleAtk">攻め(砦)</button><button class="btn" id="olRoleDef">守り(城)</button></div></div>
+        <div class="srow" id="olLvRow"><span class="slbl">上限Lv</span><div class="sbtns"><button class="btn" id="olLv10">10</button><button class="btn on" id="olLv20">20</button><button class="btn" id="olLv30">30</button><button class="btn" id="olLv40">40</button></div></div>
+        </div>
       </div>
       <button class="btn go big" id="olHost">部屋を作る</button>
       <div style="margin:8px 0;font-size:11px;color:var(--mute)">― または ―</div>
@@ -180,11 +199,14 @@
 ・<b>陣地冊（冊）</b>：自陣最深3行に3つ。<b>相手の冊</b>では飛角香桂が必ず一度止まる。自分の冊は素通り。<br>
 ・<b>砦</b>：取った駒を周囲にも打てる前線拠点（数・置ける場所はマップで変わる→上の「今のマップ」参照）。<b>旗の色＝所有者</b>（先手青／後手赤）。敵の砦に駒で入ると制圧（旗が変わる）。<br>
 ・<b>砦拠点（山・攻城戦の攻め）</b>：砦3つ（2つは最深3行）・<b>王は砦のどれかの上</b>に置く。森の砦に置けば位置が伏せられる。<b>全砦を陥落させられると負け</b>（王取りでも決着）。砦が1つ落ちるごとに相手の隠れ砦が1つ見える。<br>
-・<b>火計（かけい）</b>：<b>成り駒（と金・成香・成桂・成銀・竜・馬）と金</b>は、<b>自分が森の上にいて、周囲8マスに森が6マス以上ある</b>とき発動でき、周囲の森に隠れた<b>敵駒・敵砦</b>を全て取る／制圧する（1手消費・駒は動かない）。<b>各駒1度だけ</b>。焼けた<b>森・柵は消失して平地</b>になる（自分のいる森マスも平地化）。＝森に隠しっぱなしは危険。<b>火計で奪えるのは砦まで＝城は制圧できない</b>（城は駒で入城して奪う）。発動＝火計可の駒を選び、もう一度タップ（またはオレンジの森／🔥火計ボタン）。
+・<b>火計（かけい）</b>：<b>成り駒（と金・成香・成桂・成銀・竜・馬）と金</b>は、<b>自分が森の上にいて、周囲8マスに森が5マス以上ある</b>（自分のマスと合わせて森6マス）とき発動でき、周囲の森に隠れた<b>敵駒・敵砦</b>を全て取る／制圧する（1手消費・駒は動かない）。<b>各駒1度だけ</b>。焼けた<b>森・柵は消失して平地</b>になる（自分のいる森マスも平地化）。＝森に隠しっぱなしは危険。<b>火計で奪えるのは砦まで＝城は制圧できない</b>（城は駒で入城して奪う）。発動＝火計可の駒を選び、もう一度タップ（またはオレンジの森／🔥火計ボタン）。
 <h4 style="color:#d9a066">■ 高低差（シナリオの一部）</h4>
-・マスの左上の点の数＝高さ（段）。崖のふちは太い線とケバ、石段のマスが「坂」。<br>
-・<b>1段上</b>へは登れる。<b>2段以上の崖</b>は登れない。<b>下りは坂（石段）のマスだけ</b>。ただし<b>1段下の敵駒は取れる（逆落とし）</b>。<br>
-・飛角香は通るマスごとに同じ判定（崖で止まる）。桂は着地マスとの段差で判定。持ち駒は高さに関係なく打てる。
+<div class="cfigs"><figure class="cfig"><svg viewBox="0 0 160 92" width="100%"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5df08a"/></marker><marker id="ahx" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4a"/></marker></defs><rect x="0" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="0" y="76" width="40" height="4" fill="#7fa05a"/><rect x="40" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="40" y="76" width="40" height="4" fill="#7fa05a"/><rect x="80" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="80" y="56" width="40" height="4" fill="#7fa05a"/><rect x="120" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="120" y="56" width="40" height="4" fill="#7fa05a"/><path d="M20 54 L29 59 L31 76 L9 76 L11 59Z" fill="#cfe0ff" stroke="#222" stroke-width="1"/><path d="M26 50 Q63 12 100 30" fill="none" stroke="#5df08a" stroke-width="3" marker-end="url(#ah)"/><path d="M93 27 L100 19 L107 27" fill="none" stroke="#fff2b0" stroke-width="3"/><path d="M108 34 Q123 16 138 34" fill="none" stroke="#ff5a4a" stroke-width="3" marker-end="url(#ahx)"/><text x="140" y="28" font-size="20" font-weight="900" fill="#ff5a4a" text-anchor="middle">✕</text></svg><figcaption>上りは1段・そこで止まる</figcaption></figure><figure class="cfig"><svg viewBox="0 0 160 92" width="100%"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5df08a"/></marker><marker id="ahx" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4a"/></marker></defs><rect x="0" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="0" y="76" width="40" height="4" fill="#7fa05a"/><rect x="40" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="40" y="76" width="40" height="4" fill="#7fa05a"/><rect x="80" y="36" width="40" height="50" fill="#6b5a40" stroke="#2a2016"/><rect x="80" y="36" width="40" height="4" fill="#7fa05a"/><rect x="120" y="36" width="40" height="50" fill="#6b5a40" stroke="#2a2016"/><rect x="120" y="36" width="40" height="4" fill="#7fa05a"/><path d="M60 54 L69 59 L71 76 L49 76 L51 59Z" fill="#cfe0ff" stroke="#222" stroke-width="1"/><path d="M66 50 Q82 2 98 20" fill="none" stroke="#ff5a4a" stroke-width="3" marker-end="url(#ahx)"/><text x="92" y="22" font-size="20" font-weight="900" fill="#ff5a4a" text-anchor="middle">✕</text><path d="M98 14 Q81 -4 64 46" fill="none" stroke="#ff5a4a" stroke-width="3" marker-end="url(#ahx)"/></svg><figcaption>2段の崖は通れない</figcaption></figure><figure class="cfig"><svg viewBox="0 0 160 92" width="100%"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5df08a"/></marker><marker id="ahx" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4a"/></marker></defs><rect x="0" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="0" y="56" width="40" height="4" fill="#7fa05a"/><rect x="40" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="40" y="56" width="40" height="4" fill="#7fa05a"/><rect x="80" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="80" y="76" width="40" height="4" fill="#7fa05a"/><rect x="120" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="120" y="76" width="40" height="4" fill="#7fa05a"/><rect x="80" y="56" width="8" height="20" fill="#9a8a70" stroke="#2a2016" stroke-width=".6"/><rect x="88" y="62.666666666666664" width="8" height="13.333333333333332" fill="#9a8a70" stroke="#2a2016" stroke-width=".6"/><rect x="96" y="69.33333333333333" width="8" height="6.666666666666666" fill="#9a8a70" stroke="#2a2016" stroke-width=".6"/><path d="M60 34 L69 39 L71 56 L49 56 L51 39Z" fill="#cfe0ff" stroke="#222" stroke-width="1"/><path d="M66 30 Q89 12 112 56" fill="none" stroke="#5df08a" stroke-width="3" marker-end="url(#ah)"/><text x="92" y="88" font-size="10" fill="#e8dcc0" text-anchor="middle">坂</text></svg><figcaption>下りは坂（石段）だけ</figcaption></figure><figure class="cfig"><svg viewBox="0 0 160 92" width="100%"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5df08a"/></marker><marker id="ahx" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4a"/></marker></defs><rect x="0" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="0" y="56" width="40" height="4" fill="#7fa05a"/><rect x="40" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="40" y="56" width="40" height="4" fill="#7fa05a"/><rect x="80" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="80" y="76" width="40" height="4" fill="#7fa05a"/><rect x="120" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="120" y="76" width="40" height="4" fill="#7fa05a"/><path d="M60 34 L69 39 L71 56 L49 56 L51 39Z" fill="#cfe0ff" stroke="#222" stroke-width="1"/><path d="M100 54 L109 59 L111 76 L89 76 L91 59Z" fill="#ffb0a0" stroke="#222" stroke-width="1"/><path d="M66 30 Q83 12 100 50" fill="none" stroke="#5df08a" stroke-width="3" marker-end="url(#ah)"/></svg><figcaption>逆落とし＝1段下の敵は取れる</figcaption></figure></div>
+・点の数＝段。崖のふちは太い線とケバ、石段のマス＝坂。<br>
+・<b>上りは1手で1段だけ</b>。上ったマスで止まる（飛角香も）。同じ高さの上は走れる。<br>
+・<b>下りは坂だけ</b>。ただし<b>1段下の敵駒は坂なしで取れる（逆落とし）</b>。2段以上の崖は通れない。<br>
+・桂は着地マスとの段差で同じ判定。持ち駒は高さに関係なく打てる。<br>
+・駒を選ぶと、上って止まるマスに▲、下るマスに▼。
 <h4 style="color:#9ec0ff">■ 準備（配置）</h4>
 ・①使う駒を合計Lvまで選ぶ。②王を自陣の城に置き、駒を自陣5行に、陣地冊を最深3行に3つ、砦を1つ配置。
 <h4 style="color:#c8a0e0">■ コツ</h4>
@@ -256,15 +278,23 @@ function mustPromote(type,toRow,p){
 }
 /* ===== 3D地形ルール（2026-10-22 terrain3d）＝新シナリオ(s3d_*)専用。height を持たない地形（平地/攻城/山/既存シナリオ）は従来ルールのまま =====
    クライアント本体・AI Worker・サーバー(gameLogic.js)の3か所に同じ文面で入れる（同じ seed/opts/mapType → 乱数列まで同じ地形）。
-   崖のルール（1マス進むごと＝飛角香は通るマスごと、桂は着地マスで判定）:
-     ・同じ高さ／1段上る … 進める（取りも可）
+   崖のルール（2026-10-23 cliff2 で改定。1マス進むごと＝飛角香は通るマスごと、桂は着地マスで判定）:
+     ・同じ高さ … 進める（取りも可）。飛角香は同じ高さの上なら走り続けられる
+     ・1段上る … 進める（取りも可）。ただし上ったマスで止まる＝飛角香もその先へは進めない（1手で上れるのは1段だけ）
      ・2段以上の段差 … 登れない・降りられない（崖）
      ・1段下る … 「坂」のマス（出発か到着のどちらか）を通る時だけ。坂でなくても1段下の敵駒を取る「逆落とし」はできる。
+       下った後も走り続けられる（下りは何段でも、坂が続く限り）
    打ち（持ち駒）は高さに関係なく、従来どおり城・砦の周囲に打てる。 */
 function t3dStep(T,fr,fc,tr,tc,cap){ var H=T&&T.height; if(!H)return true; var a=H[fr][fc], b=H[tr][tc];
   if(b===a||b===a+1)return true;
   if(b===a-1){ if(cap)return true; var S=T.slope; return !!(S&&(S[fr][fc]||S[tr][tc])); }
   return false; }
+function t3dUp(T,fr,fc,tr,tc){ var H=T&&T.height; return !!H&&H[tr][tc]>H[fr][fc]; }   // 上り＝そのマスで止まる
+/* 火計の地形条件（全マップ共通・2026-06-27g の確定仕様）：自分が森の上にいて、周囲8マスに森が5マス以上（自分のマスと合わせて森6マス）。
+   駒の条件（成り駒か金・各駒1度）は別に見る。クライアント本体・AI Worker・サーバーで同じ関数を使う。 */
+function fireTerrainOK(grid,r,c){ if(grid[r][c]!==TERRAIN.FOREST)return false; var n=0;
+  for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var tr=r+dr,tc=c+dc; if(tr<0||tr>=N||tc<0||tc>=N)continue; if(grid[tr][tc]===TERRAIN.FOREST)n++; }
+  return n>=5; }
 /* マップ定義：t=地形（.平地 f森 ?森(乱数) w川 b橋 C城 F石垣(固定柵) D堤）／h=高さ(0〜3)／s=坂(/)
    side: lv=合計Lv, allow=使える駒(null=全部), forts=砦の数, fences=柵の数, army=推奨編成(CPUもこれを使う) */
 var S3D_MAPS={
@@ -485,7 +515,7 @@ function genMoves(board,terrain,r,c,piece,fences,forts){
     if(t==="L") longDirs.push(orient(-1,0,player));
     for(const [dr,dc] of longDirs){ let rr=r+dr,cc=c+dc, _pr=r, _pc=c;
       while(inBounds(rr,cc)){ if(terrainBlocksPass(rr,cc))break; if(own(rr,cc))break; if(terrainBlocksEnter(rr,cc))break;
-        const cap=enemy(rr,cc); if(!t3dStep(terrain,_pr,_pc,rr,cc,!!cap))break; moves.push({r:rr,c:cc,capture:!!cap});
+        const cap=enemy(rr,cc); if(!t3dStep(terrain,_pr,_pc,rr,cc,!!cap))break; moves.push({r:rr,c:cc,capture:!!cap}); if(t3dUp(terrain,_pr,_pc,rr,cc))break;
         if(isStop(rr,cc)&&fenceStops)break; if(cap)break; _pr=rr; _pc=cc; rr+=dr; cc+=dc; } }
     const extra=[];
     if(t==="PR") extra.push([1,1],[1,-1],[-1,1],[-1,-1]);
@@ -1017,13 +1047,13 @@ function dropMoves(S,side,free){ var hand=S.hand&&S.hand[side]; if(!hand||!hand.
   var cells=dropCells(S,side,free),out=[];
   for(var i=0;i<cells.length;i++)for(var j=0;j<types.length;j++)out.push({from:null,to:cells[i],drop:types[j],s:side});
   return out; }
-// 火計：成り駒＋金が周囲8マスの森(6マス以上)に火を放つ。各駒1度・1手消費。隣接森の敵駒/敵砦が居る時のみ候補化
+// 火計：成り駒＋金が森の上から周囲8マスの森(5マス以上)に火を放つ(fireTerrainOK)。各駒1度・1手消費。隣接森の敵駒/敵砦が居る時のみ候補化
 function fireMoves(S,side){ var out=[],foe=side===0?1:0;
   for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var pc=S.board[r][c]; if(!pc||pc.player!==side)continue;
     if(!(pc.promoted||pc.type==='G')||pc.fired)continue; if(TER.grid[r][c]!==TERRAIN.FOREST)continue; var fcnt=0,capE=0,fortHit=0,expSelf=0;   // 自分が森の上＋周囲森5＝森6マス合計
     for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var tr=r+dr,tc=c+dc; if(tr<0||tr>=N||tc<0||tc>=N)continue; if(TER.grid[tr][tc]!==TERRAIN.FOREST)continue; fcnt++; var tp=S.board[tr][tc]; if(tp&&tp.player===foe)capE++; else if(tp&&tp.player===side&&tp.hidden)expSelf++; if(S.forts&&S.forts[tr+'_'+tc]===foe)fortHit++; }
     // 火計の採否：敵砦を落とす火計は勝利条件直結なので常に候補。敵駒だけ狙う火計は「奪う敵駒 > 火に晒す自分の隠れ駒」の時だけ＝自陣で手の内を晒すだけの愚行を防ぐ。
-    if(fcnt>=5 && (fortHit>=1 || (capE>=1 && capE>expSelf)))out.push({from:[r,c],to:[r,c],fire:true,s:side}); }
+    if(fireTerrainOK(TER.grid,r,c) && (fortHit>=1 || (capE>=1 && capE>expSelf)))out.push({from:[r,c],to:[r,c],fire:true,s:side}); }
   return out; }
 function order(S,moves,toMove,ply,ttm){ var kl=KILL[ply]||[]; for(var i=0;i<moves.length;i++){ var m=moves[i]; if(m.fire){ m._o=180000; continue; } var tr=m.to[0],tc=m.to[1],cap=S.board[tr][tc],s=0,mk=mvKey(m);
     if(mk===ttm)s+=1e7;
@@ -1250,7 +1280,7 @@ function _stepTo(board,grid,moves,rr,cc,player,blockRiver,T,fr,fc){ if(rr<0||rr>
   if(blockRiver&&grid[rr][cc]===TERRAIN.RIVER)return false; var cap=!!(q&&q.player!==player); if(T&&T.height&&!t3dStep(T,fr,fc,rr,cc,cap))return false; moves.push({r:rr,c:cc,capture:cap}); return !cap; }
 function _slide(board,grid,moves,r,c,dr,dc,player,fences,forts,T){ var rr=r+dr,cc=c+dc, H3=T&&T.height, pr=r, pc=c;
   while(rr>=0&&rr<N&&cc>=0&&cc<N){ if(grid[rr][cc]===TERRAIN.RIVER)break; var q=board[rr][cc]; if(q&&q.player===player)break;
-    var cap=!!q; if(H3&&!t3dStep(T,pr,pc,rr,cc,cap))break; moves.push({r:rr,c:cc,capture:cap});
+    var cap=!!q; if(H3&&!t3dStep(T,pr,pc,rr,cc,cap))break; moves.push({r:rr,c:cc,capture:cap}); if(H3&&T.height[rr][cc]>T.height[pr][pc])break;
     var k=_KEY[rr][cc]; if(fences){ var fo=fences[k]; if(fo!==undefined&&fo!==player)break; } if(forts){ var ko=forts[k]; if(ko!==undefined&&ko!==player)break; }
     if(cap)break; pr=rr; pc=cc; rr+=dr; cc+=dc; } }
 function genMoves(board,terrain,r,c,piece,fences,forts){
@@ -1292,7 +1322,7 @@ function sqAttacked(board,terrain,tr,tc,side,fences,forts){ var grid=terrain.gri
       if(q){ if(q.player===side){ var qt=q.type, hit2=false;
           if(!diag&&(qt==="R"||qt==="PR"))hit2=true; else if(diag&&(qt==="B"||qt==="PB"))hit2=true;
           else if(qt==="L"&&ddc===0&&(-ddr)===-sg)hit2=true;   // 香の進行方向(-sg)＝(tr,tc)へ向かう向き(-ddr)
-          if(hit2){ if(!H3)return true; var okp=true; for(var kk=s;kk>=1;kk--){ if(!t3dStep(terrain,tr+ddr*kk,tc+ddc*kk,tr+ddr*(kk-1),tc+ddc*(kk-1),kk===1?capT:false)){ okp=false; break; } } if(okp)return true; } }
+          if(hit2){ if(!H3)return true; var okp=true; for(var kk=s;kk>=1;kk--){ if(!t3dStep(terrain,tr+ddr*kk,tc+ddc*kk,tr+ddr*(kk-1),tc+ddc*(kk-1),kk===1?capT:false)||(kk>1&&H3[tr+ddr*(kk-1)][tc+ddc*(kk-1)]>H3[tr+ddr*kk][tc+ddc*kk])){ okp=false; break; } } if(okp)return true; } }
         break; }
       if(grid[rr][cc]===TERRAIN.RIVER)break;
       var k=_KEY[rr][cc]; if(fences){ var fo=fences[k]; if(fo!==undefined&&fo!==side)break; } if(forts){ var ko=forts[k]; if(ko!==undefined&&ko!==side)break; } } }
@@ -1459,15 +1489,23 @@ function mustPromote(type,toRow,p){
 }
 /* ===== 3D地形ルール（2026-10-22 terrain3d）＝新シナリオ(s3d_*)専用。height を持たない地形（平地/攻城/山/既存シナリオ）は従来ルールのまま =====
    クライアント本体・AI Worker・サーバー(gameLogic.js)の3か所に同じ文面で入れる（同じ seed/opts/mapType → 乱数列まで同じ地形）。
-   崖のルール（1マス進むごと＝飛角香は通るマスごと、桂は着地マスで判定）:
-     ・同じ高さ／1段上る … 進める（取りも可）
+   崖のルール（2026-10-23 cliff2 で改定。1マス進むごと＝飛角香は通るマスごと、桂は着地マスで判定）:
+     ・同じ高さ … 進める（取りも可）。飛角香は同じ高さの上なら走り続けられる
+     ・1段上る … 進める（取りも可）。ただし上ったマスで止まる＝飛角香もその先へは進めない（1手で上れるのは1段だけ）
      ・2段以上の段差 … 登れない・降りられない（崖）
      ・1段下る … 「坂」のマス（出発か到着のどちらか）を通る時だけ。坂でなくても1段下の敵駒を取る「逆落とし」はできる。
+       下った後も走り続けられる（下りは何段でも、坂が続く限り）
    打ち（持ち駒）は高さに関係なく、従来どおり城・砦の周囲に打てる。 */
 function t3dStep(T,fr,fc,tr,tc,cap){ var H=T&&T.height; if(!H)return true; var a=H[fr][fc], b=H[tr][tc];
   if(b===a||b===a+1)return true;
   if(b===a-1){ if(cap)return true; var S=T.slope; return !!(S&&(S[fr][fc]||S[tr][tc])); }
   return false; }
+function t3dUp(T,fr,fc,tr,tc){ var H=T&&T.height; return !!H&&H[tr][tc]>H[fr][fc]; }   // 上り＝そのマスで止まる
+/* 火計の地形条件（全マップ共通・2026-06-27g の確定仕様）：自分が森の上にいて、周囲8マスに森が5マス以上（自分のマスと合わせて森6マス）。
+   駒の条件（成り駒か金・各駒1度）は別に見る。クライアント本体・AI Worker・サーバーで同じ関数を使う。 */
+function fireTerrainOK(grid,r,c){ if(grid[r][c]!==TERRAIN.FOREST)return false; var n=0;
+  for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var tr=r+dr,tc=c+dc; if(tr<0||tr>=N||tc<0||tc>=N)continue; if(grid[tr][tc]===TERRAIN.FOREST)n++; }
+  return n>=5; }
 /* マップ定義：t=地形（.平地 f森 ?森(乱数) w川 b橋 C城 F石垣(固定柵) D堤）／h=高さ(0〜3)／s=坂(/)
    side: lv=合計Lv, allow=使える駒(null=全部), forts=砦の数, fences=柵の数, army=推奨編成(CPUもこれを使う) */
 var S3D_MAPS={
@@ -1688,7 +1726,7 @@ function genMoves(board,terrain,r,c,piece,fences,forts){
     if(t==="L") longDirs.push(orient(-1,0,player));
     for(const [dr,dc] of longDirs){ let rr=r+dr,cc=c+dc, _pr=r, _pc=c;
       while(inBounds(rr,cc)){ if(terrainBlocksPass(rr,cc))break; if(own(rr,cc))break; if(terrainBlocksEnter(rr,cc))break;
-        const cap=enemy(rr,cc); if(!t3dStep(terrain,_pr,_pc,rr,cc,!!cap))break; moves.push({r:rr,c:cc,capture:!!cap});
+        const cap=enemy(rr,cc); if(!t3dStep(terrain,_pr,_pc,rr,cc,!!cap))break; moves.push({r:rr,c:cc,capture:!!cap}); if(t3dUp(terrain,_pr,_pc,rr,cc))break;
         if(isStop(rr,cc)&&fenceStops)break; if(cap)break; _pr=rr; _pc=cc; rr+=dr; cc+=dc; } }
     const extra=[];
     if(t==="PR") extra.push([1,1],[1,-1],[-1,1],[-1,-1]);
@@ -2262,7 +2300,7 @@ function pickS3DPlacement(terrain,side,army){
   const mob=(t,r,c,fwdOnly)=>{ eb[r][c]={type:t,player:side,promoted:false,hidden:false}; const mv=genMoves(eb,terrain,r,c,eb[r][c],{},{}); eb[r][c]=null; if(!fwdOnly)return mv.length; let n=0; for(const m of mv) if((m.r-r)*fwd>0)n++; return n; };
   // 王の城の8方向で、敵の走り駒が遠くから通ってこられる線（長さ2以上・崖/川で切れない）
   const openLines=(kr,kc)=>{ const out=[]; for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]]){ let L=0, pr=kr, pc=kc;
-      for(let k=1;k<N;k++){ const r=kr+dr*k, c=kc+dc*k; if(!inB(r,c)||G[r][c]===TERRAIN.RIVER)break; if(!t3dStep(terrain,r,c,pr,pc,k===1))break; L++; pr=r; pc=c; }
+      for(let k=1;k<N;k++){ const r=kr+dr*k, c=kc+dc*k; if(!inB(r,c)||G[r][c]===TERRAIN.RIVER)break; if(!t3dStep(terrain,r,c,pr,pc,k===1))break; if(k>1&&t3dUp(terrain,r,c,pr,pc))break; L++; pr=r; pc=c; }
       if(L>=2)out.push([dr,dc,L]); } return out; };
   let king=myC[0], kb=-1e9;
   for(const [r,c] of myC){ let s=Math.random()*1.5-openLines(r,c).length*1.6; for(const [er,ec] of enC)s+=Math.abs(er-r)*0.3+Math.abs(ec-c)*0.4;
@@ -2303,7 +2341,7 @@ function pickS3DPlacement(terrain,side,army){
 /* ---- シナリオ（高低差マップ）の選択 ---- */
 function loadS3D(sc,side){ mapType=sc.t3d; scenario=sc; sc._playerSide=side; setSide(side); const d=s3dDef(mapType); handLimit=d.sides[side].lv; reserve=d.sides[side].army.slice(); humanFirst=(side===0); newTerrain(false); enterArmy(); }   // humanFirst＝座標の向き(あなたが手前)。手番はシナリオの first
 function s3dRulesText(){ const d=s3dDef(mapType); const k=d.key; const me=d.sides[ME].name, op=d.sides[OPP].name; const first=d.sides[d.first].name;
-  const cliff='高低差：数字の点＝段。1段上へは登れる・2段以上の崖は登れない。下りは坂（石段のマス）だけ。ただし1段下の敵駒は取れる（逆落とし）。飛角香は通るマスごとに判定。';
+  const cliff='高低差：点の数＝段。上りは1手で1段だけ・上ったマスで止まる（飛角香も）。2段以上の崖は通れない。下りは坂（石段のマス）だけ。ただし1段下の敵駒は取れる（逆落とし）。';
   const L={
     koukin:['官軍(Lv20)と黄巾軍(Lv34・歩香桂銀だけ＝数で押す)。','張角の広宗城は2段の丘の上。丘から降りられるのは石段の3か所だけ＝黄巾の大軍は降り口で詰まる。官軍は1段ずつ登って攻め上がれる。','勝ち方：降り口を叩きながら丘を登り、張角(王)か広宗城を落とす。'],
     chouhan:['劉備軍(Lv18)を曹操軍(Lv26・騎兵＝桂が多い)が追う。','太い川は誰も入れない。渡れるのは中央の長坂橋だけ（桂は川を跳び越えられる）。','北の長坂は坂道＝曹操軍は駆け下りられる。南の当陽の丘(1段)は石段2か所でしか降りられない。','勝ち方(劉備)：橋の出口を張飛(飛車)で塞ぎ、渡ってきた駒を各個撃破。勝ち方(曹操)：桂で川を跳び越え背後を突く。'],
@@ -2316,17 +2354,16 @@ function s3dRulesText(){ const d=s3dDef(mapType); const k=d.key; const me=d.side
   const lines=['あなた＝'+me+'　相手＝'+op+'　先手＝'+first+'。'].concat(L[k]||[]); lines.push(cliff); lines.push('勝利＝相手の王を取る、または相手の拠点（城・砦）を全て奪う。'+(d.hold?'':'200手で決着しなければ判定（拠点の数→駒の価値の合計→後手の勝ち）。'));
   return {t:'シナリオ「'+d.name+'」', c:'#d9a066', l:lines}; }
 /* 高低差シナリオの駒選び（Lvは固定・使える駒もシナリオで決まる） */
-function renderS3DArmy(row,btn,aiRow,el){ const d=s3dDef(mapType), sd=d.sides[ME];
-  if(!online){ const rpick=row('tight'); rpick.appendChild(el('span','lbl','物語'));
+function renderS3DArmy(srow,btn,aiRow,el,powerRow,acts){ const d=s3dDef(mapType), sd=d.sides[ME];
+  if(!online){ const rpick=srow('物語');
     for(const key in SCENARIOS){ const s=SCENARIOS[key]; btn(rpick,s.name+(scenCleared(key)?' ★':''),!!(scenario&&scenario.key===key),()=>{ if(!scenario||scenario.key!==key)loadScenario(SCENARIOS[key]); }); }
-    const rsd=row('tight'); rsd.appendChild(el('span','lbl','陣営'));
+    const rsd=srow('陣営');
     for(const s of [0,1]){ btn(rsd,d.sides[s].name+(d.first===s?'（先手）':''),ME===s,()=>{ if(ME!==s)loadS3D(scenario,s); },s===ME?'you':'on'); }
-    rsd.appendChild(el('span','lbl sm',(PROF.name||'未登録'))); btn(rsd,PROF.name?'名前変更':'登録',false,()=>{ registerName(); });
     aiRow(); }
-  else { const ri=row('tight'); ri.appendChild(el('span','lbl','シナリオ')); ri.appendChild(el('span','lbl sm',d.name+'／あなた＝'+sd.name+(d.first===ME?'（先手）':''))); }
+  else { const ri=srow('シナリオ'); ri.appendChild(el('span','sname',d.name+'／あなた＝'+sd.name+(d.first===ME?'（先手）':''))); }
   const pk=PICKABLE.filter(p=>!sd.allow||sd.allow.includes(p.type));
-  const r3=row('tight scroll'); for(const p of pk){ const cnt=reserve.filter(t=>t===p.type).length; const pe=el('div','pick'); pe.appendChild(el('div','k',PIECE[p.type].label)); pe.appendChild(el('div','lv','Lv'+p.lv)); pe.appendChild(el('div','cnt','×'+cnt)); const pm=el('div','pm'); const mn=el('button',null,'－'); mn.onclick=()=>removeReserve(p.type); const pl=el('button',null,'＋'); pl.onclick=()=>addReserve(p.type,p.lv,p.max); pm.appendChild(mn); pm.appendChild(pl); pe.appendChild(pm); r3.appendChild(pe); }
-  const r2=row('tight'); r2.appendChild(el('span','lbl','戦力 '+reserveLv()+'/'+sd.lv)); const g=el('div','gauge'); const gf=el('div','gfill'); gf.style.width=Math.min(100,reserveLv()/sd.lv*100)+'%'; gf.style.background=reserveLv()>=sd.lv?'linear-gradient(90deg,#2e8b57,#3fb87a)':'linear-gradient(90deg,#9a7a3a,#d8b461)'; g.appendChild(gf); r2.appendChild(g);
+  const r3=srow('駒','scroll'); for(const p of pk){ const cnt=reserve.filter(t=>t===p.type).length; const pe=el('div','pick'); pe.appendChild(el('div','k',PIECE[p.type].label)); pe.appendChild(el('div','lv','Lv'+p.lv)); pe.appendChild(el('div','cnt','×'+cnt)); const pm=el('div','pm'); const mn=el('button',null,'－'); mn.onclick=()=>removeReserve(p.type); const pl=el('button',null,'＋'); pl.onclick=()=>addReserve(p.type,p.lv,p.max); pm.appendChild(mn); pm.appendChild(pl); pe.appendChild(pm); r3.appendChild(pe); }
+  powerRow(sd.lv); const r2=acts();
   btn(r2,'史実の編成',false,()=>{ reserve=sd.army.slice(); renderHUD(); });
   btn(r2,'配置へ →',true,()=>{ if(!online&&!PROF.name){ if(!registerName())return; } enterPlacement(); },'go'); }
 /* ---- 3D駒（pieces_3d/{you|ai}_{key}.glb・P3D_SPEC 2026-10-21）：あれば3Dで立たせる。自軍・敵軍とも敵陣の方を向く＝手前のカメラからは自軍の背中。無ければ2Dの絵 ----
@@ -2403,7 +2440,25 @@ function _isTarget(rc){ if(!rc||!state)return false; const r=rc[0],c=rc[1]; cons
 /* 演出の時だけ駒を一時的に大きく（取る・成る）。待機中は等倍 */
 const _pops=[];
 function popPiece(g,k){ if(!g)return; _pops.push({g:g,t0:performance.now(),dur:700,k:k||1.6}); }
-function updatePops(now){ for(let i=_pops.length-1;i>=0;i--){ const p=_pops[i]; const t=(now-p.t0)/p.dur; if(t>=1||!p.g.parent){ p.g.scale.set(1,1,1); _pops.splice(i,1); continue; } const s=1+(p.k-1)*Math.sin(Math.PI*Math.min(1,t*1.15))*(t<0.5?1:1-((t-0.5)/0.5)*0.0); p.g.scale.set(s,s,s); } }
+/* 王手の演出：王の足元に赤い輪（脈打って消える）・王の上に「王手」・王手をかけた駒を一瞬大きく。約1.3秒で消える */
+const _chkFX=[];
+function checkFX(kr,kc,attackers){ const now=performance.now(); const x=xOf(kc), z=zOf(kr);
+  const mat=new THREE.MeshBasicMaterial({map:fxTex('cring'),transparent:true,opacity:0,depthTest:false,depthWrite:false});
+  const m=new THREE.Mesh(pgeo('mark',()=>new THREE.PlaneGeometry(TILE,TILE)),mat); m.rotation.x=-Math.PI/2; m.position.set(x,TOP+0.1+_markH(x,z),z); m.renderOrder=29; m.raycast=NOPICK; fxGroup.add(m); _chkFX.push({m:m,t0:now,dur:1300});
+  for(const g of attackers)popPiece(g,1.35);
+  try{ const v=new THREE.Vector3(x,cellH(kr,kc)+TOP+1.4,z).project(camera); const rc=renderer.domElement.getBoundingClientRect(); let px=rc.left+(v.x*0.5+0.5)*rc.width, py=rc.top+(-v.y*0.5+0.5)*rc.height;
+    px=Math.max(50,Math.min(innerWidth-50,px)); py=Math.max(40,Math.min(innerHeight-60,py-30));
+    let el=document.getElementById('chkcap'); if(!el){ el=document.createElement('div'); el.id='chkcap'; document.body.appendChild(el); } el.textContent='王手'; el.style.left=px+'px'; el.style.top=py+'px'; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); }catch(e){} }
+function updateChkFX(now){ for(let i=_chkFX.length-1;i>=0;i--){ const f=_chkFX[i]; const a=(now-f.t0)/f.dur; if(a>=1){ fxGroup.remove(f.m); f.m.material.dispose(); _chkFX.splice(i,1); continue; }
+  const s=1.05+0.22*Math.sin(Math.min(1,a)*Math.PI*3); f.m.scale.set(s,s,1); f.m.material.opacity=a<0.12?a/0.12:1-Math.pow((a-0.12)/0.88,2); } }
+// 直前の手で lm.player が相手の王に王手をかけたか（見えている王だけ＝森に隠れた王の位置は明かさない）
+function checkAfterMove(lm,groups){ if(!lm||state.phase!=='play')return null; const sd=lm.player, ks=1-sd; let kr=-1,kc=-1;
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(p&&p.type==='K'&&p.player===ks){ kr=r; kc=c; } }
+  if(kr<0||!groups[kr+'_'+kc])return null;
+  const hits=allMoves(state.board,terrain,sd,state.fences,fortMap()).filter(m=>m.to[0]===kr&&m.to[1]===kc); if(!hits.length)return null;
+  const att=[]; for(const m of hits){ const g=groups[m.from[0]+'_'+m.from[1]]; if(g&&!att.includes(g))att.push(g); }
+  return {r:kr,c:kc,att:att}; }
+function updatePops(now){ updateChkFX(now); for(let i=_pops.length-1;i>=0;i--){ const p=_pops[i]; const t=(now-p.t0)/p.dur; if(t>=1||!p.g.parent){ p.g.scale.set(1,1,1); _pops.splice(i,1); continue; } const s=1+(p.k-1)*Math.sin(Math.PI*Math.min(1,t*1.15))*(t<0.5?1:1-((t-0.5)/0.5)*0.0); p.g.scale.set(s,s,s); } }
 
 
 /* ---- 小道具：キャンバス・乱数・ジオメトリ結合 ---- */
@@ -3064,7 +3119,7 @@ function reserveLv(){ return reserve.reduce((a,t)=>a+(PIECE[t]?.lv||0),0); }
 function enterArmy(){ try{document.getElementById('banner').style.display='none';}catch(_){} if(isS3D()){ handLimit=s3dSide(ME).lv; if(!reserve.length)reserve=s3dSide(ME).army.slice(); } state={phase:"army", board:emptyBoard(), walls:{}, fences:Object.assign({},terrain.presetFences||{}), forts:{0:[],1:[]}, hand:{0:[],1:[]}, turn:0, winner:null, selected:null, legal:[], dropType:null, lastMove:null, kingPlaced:false, fortPlaced:false, history:[] };
   undoStack=[];
   if(isScenario()) placeScenarioAI();                       // 董卓の布陣をマップ選択時点から盤に表示
-  trayPick=null; updateCastleColors(); buildStructures(); syncScene(); renderHUD(); setMsg(isScenario()?("シナリオ："+scenario.name):"合計Lv"+handLimit); }
+  trayPick=null; updateCastleColors(); buildStructures(); syncScene(); renderHUD(); setMsg(''); }
 
 function addReserve(type,lv,max){ if(reserve.filter(t=>t===type).length>=max) return; if(reserveLv()+lv>handLimit){ setMsg("合計Lv"+handLimit+"までです。"); return; } reserve.push(type); renderHUD(); }
 function removeReserve(type){ const i=reserve.indexOf(type); if(i<0)return; reserve.splice(i,1); renderHUD(); }
@@ -3184,12 +3239,12 @@ function ensureFortVisible(){ for(const s of [0,1]){ let vis=false; for(const f 
 function legalFor(r,c){ const pc=state.board[r][c]; if(!pc)return []; return genMoves(state.board,terrain,r,c,pc,state.fences,fortMap()); }
 // 拠点(城+砦)の所有数。全マップ共通＝自分の拠点が全て陥落すると負け（各陣営は開始時に必ず城か砦を持つ）
 function strongholdsOwnedSide(s){ let n=0; for(const k in state.walls)if(state.walls[k].owner===s)n++; n+=fortsArr(s).length; return n; }
-/* ---- 火計：成り駒＋金が周囲8マスの森(6マス以上必須)に火を放ち、隠れた敵駒・敵砦を焼く。各駒1度だけ。1手消費・駒は動かない。
+/* ---- 火計：成り駒＋金が森の上から周囲8マスの森(5マス以上＝自分のマスと合わせて6)に火を放ち、隠れた敵駒・敵砦を焼く。各駒1度だけ。1手消費・駒は動かない。
         焼けた森/柵は消失(平地化)＝自分のいるマスの森も平地に戻る。 ---- */
 function canFire(pc){ return !!pc && (pc.promoted || pc.type==='G') && !pc.fired; }
 function adjForestCount(r,c){ let n=0; for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; const tr=r+dr,tc=c+dc; if(tr<0||tr>=N||tc<0||tc>=N)continue; if(terrain.grid[tr][tc]===TERRAIN.FOREST)n++; } return n; }
 function onForest(r,c){ return terrain.grid[r][c]===TERRAIN.FOREST; }   // 火計は「自分が森の上」が条件
-function fireReady(r,c,side){ const pc=state.board[r][c]; return canFire(pc)&&pc.player===side&&onForest(r,c)&&adjForestCount(r,c)>=5; }   // 自分のいる森＋周囲森5マス＝森6マス合計（全マップ共通）
+function fireReady(r,c,side){ const pc=state.board[r][c]; return canFire(pc)&&pc.player===side&&fireTerrainOK(terrain.grid,r,c); }   // 自分のいる森＋周囲森5マス＝森6マス合計（全マップ共通）
 function fireArea(r,c){ const a=[[r,c]]; for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; const tr=r+dr,tc=c+dc; if(tr>=0&&tr<N&&tc>=0&&tc<N)a.push([tr,tc]); } return a; }
 function fireMarkers(r,c){ const out=[]; for(const [tr,tc] of fireArea(r,c)){ if(tr===r&&tc===c)continue; if(terrain.grid[tr][tc]===TERRAIN.FOREST)out.push([tr,tc]); } return out; }
 function executeFire(side,r,c){ const other=1-side; let kingCap=false; if(!state.burned)state.burned={};
@@ -3386,6 +3441,7 @@ function syncScene(){ PM3D_MIX.length=0; try{ pm3dWant(); }catch(e){}
     if(g){ if(lm.from){ const _m3=g.userData.m3d; if(_m3)pm3dPlay(_m3,'Move',0.1); animPiece(g,xOf(lm.from[1]),zOf(lm.from[0]),tx,tz,{y0:yAt(lm.from[0],lm.from[1]),dur:_m3?420:dur,arc:_m3?(cap?0.35:0.12):(cap?1.1:0.7),done:()=>{ if(_m3)pm3dPlay(_m3,cap?'Attack':'Idle',0.15); if(cap||lm.promote)popPiece(g,cap?1.7:1.5); if(lm.promote)spawnPromoteFX(tr,tc); }}); }
       else { animPiece(g,tx,tz,tx,tz,{dur:dur,drop:true,done:()=>spawnDustFX(tr,tc,0.7)}); } }
     if(cap)setTimeout(()=>spawnCaptureFX(tr,tc),dur-40); else if(lm.promote&&!g)spawnPromoteFX(tr,tc);
+    { const ck=checkAfterMove(lm,groups); if(ck)setTimeout(()=>{ try{ if(state.phase==='play')checkFX(ck.r,ck.c,ck.att); }catch(e){} },lm.from?400:340); }
   }catch(e){} }
   else if(hl>_animHist)_animHist=hl;
   _prevHandLen={0:(state.hand&&state.hand[0]||[]).length,1:(state.hand&&state.hand[1]||[]).length};
@@ -3407,6 +3463,19 @@ const MARKCOL={legal:0x5df08a,cap:0xff4a3c,drop:0x4fd8ff,last:0xffb340,place:0xf
 function mark(x,z,kind,sc,pulse){ const _my=_markH(x,z); const m=new THREE.Mesh(pgeo('mark',()=>new THREE.PlaneGeometry(TILE,TILE)), markMat(kind)); m.rotation.x=-Math.PI/2; m.position.set(x,TOP+0.08+_my,z); const s=sc||0.96; m.scale.set(s,s,1); m.renderOrder=8; m.raycast=NOPICK; m.userData={keepGeo:1,s:s,pulse:pulse||0}; markerGroup.add(m);
   if(kind==='legal'||kind==='cap'||kind==='drop'||kind==='fire'){ const g=new THREE.Mesh(pgeo('pillar',()=>new THREE.CylinderGeometry(TILE*0.3,TILE*0.36,0.5,20,1,true)), new THREE.MeshBasicMaterial({color:MARKCOL[kind],transparent:true,opacity:kind==='cap'?0.3:0.2,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending})); g.position.set(x,TOP+0.33+_my,z); g.renderOrder=7; g.raycast=NOPICK; g.userData={keepGeo:1,ownMat:1,glow:1}; markerGroup.add(g); }
   return m; }
+/* 高低差：移動先が上り（そこで止まる）／下り（坂・逆落とし）なら矢印を立てる（いつも画面の上下＝高さの上下） */
+const _arTex={};
+function arrowTex(up){ const k=up?'u':'d'; if(_arTex[k])return _arTex[k]; const S=128; const [cv,x]=cvs(S,S); x.save(); if(!up){ x.translate(0,S); x.scale(1,-1); }
+  const chev=(y)=>{ x.beginPath(); x.moveTo(20,y+34); x.lineTo(64,y); x.lineTo(108,y+34); x.lineTo(108,y+58); x.lineTo(64,y+26); x.lineTo(20,y+58); x.closePath(); };
+  x.lineJoin='round'; for(const y of [10,56]){ chev(y); x.lineWidth=12; x.strokeStyle='rgba(20,24,30,0.9)'; x.stroke(); x.fillStyle=up?'#fff2b0':'#d8f4ff'; x.fill(); }
+  x.restore(); const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; _arTex[k]=t; return t; }
+const _arMat={};
+function stepArrow(x,z,up){ const k=up?'u':'d'; if(!_arMat[k])_arMat[k]=new THREE.SpriteMaterial({map:arrowTex(up),transparent:true,depthTest:false,depthWrite:false});
+  const sp=new THREE.Sprite(_arMat[k]); const s=TILE*(up?0.62:0.5); sp.scale.set(s,s,1); sp.center.set(0.5,0); sp.position.set(x,TOP+0.12+_markH(x,z),z); sp.renderOrder=9; sp.raycast=NOPICK; markerGroup.add(sp); return sp; }
+// from→移動先 m の最後の1歩の高低差（+1=上って止まる／-1=下る／0=同じ高さ）。桂は着地マスとの差
+function stepDelta(sr,sc,m){ const H=terrain&&terrain.height; if(!H)return 0; const dr=m.r-sr, dc=m.c-sc; let pr=sr, pc=sc;
+  if(!(Math.abs(dr)===2&&Math.abs(dc)===1)&&(dr===0||dc===0||Math.abs(dr)===Math.abs(dc))){ pr=m.r-Math.sign(dr); pc=m.c-Math.sign(dc); }
+  return Math.sign(H[m.r][m.c]-H[pr][pc]); }
 function selBeam(x,z){ const m=new THREE.Mesh(pgeo('beam',()=>new THREE.CylinderGeometry(TILE*0.42,TILE*0.34,3.4,24,1,true)), new THREE.MeshBasicMaterial({color:0xffd54a,transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending})); m.position.set(x,TOP+1.7+_markH(x,z),z); m.renderOrder=7; m.raycast=NOPICK; m.userData={keepGeo:1,ownMat:1,beam:1}; markerGroup.add(m); }
 function updateMarkers(now){ const p=0.5+0.5*Math.sin(now/700); for(const m of markerGroup.children){ if(m.userData.pulse){ const s=m.userData.s*(1+0.012*p*m.userData.pulse); m.scale.set(s,s,1); if(m.material.opacity!==undefined&&m.userData.pulse>1)m.material.opacity=0.85+0.15*p; } if(m.userData.beam)m.material.opacity=0.12+0.03*p; }
   updatePops(now);
@@ -3418,7 +3487,7 @@ function syncMarkers(){ clearGroup(markerGroup); if(!state)return;
   if(state.lastMove&&!(state.lastMove.player===OPP&&state.lastMove.hidden)){ if(state.lastMove.to)mark(xOf(state.lastMove.to[1]),zOf(state.lastMove.to[0]),'last',0.98); if(state.lastMove.from)mark(xOf(state.lastMove.from[1]),zOf(state.lastMove.from[0]),'last',0.7); }
   if(state.turn!==ME||state.phase!=="play")return;
   if(state.selected){ mark(xOf(state.selected[1]),zOf(state.selected[0]),'sel',1.02,1); selBeam(xOf(state.selected[1]),zOf(state.selected[0]));
-    for(const m of state.legal){ if(m.capture){ mark(xOf(m.c),zOf(m.r),'cap',1.0,2); } else { mark(xOf(m.c),zOf(m.r),'legal',0.94,1); } }
+    for(const m of state.legal){ if(m.capture){ mark(xOf(m.c),zOf(m.r),'cap',1.0,2); } else { mark(xOf(m.c),zOf(m.r),'legal',0.94,1); } const d=stepDelta(state.selected[0],state.selected[1],m); if(d)stepArrow(xOf(m.c),zOf(m.r),d>0); }
     if(state.fireReady){ mark(xOf(state.selected[1]),zOf(state.selected[0]),'fire',1.05,2); }   // 火計可の駒＝オレンジ
     if(state.fireCells)for(const [fr,fc] of state.fireCells){ mark(xOf(fc),zOf(fr),'fire',0.96,1); }   // 火計で焼ける森＝オレンジ
   }
@@ -3488,38 +3557,42 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
   const card=el('div','card'); panel.appendChild(card);
   const row=(cls)=>{ const r=el('div','row'+(cls?' '+cls:'')); card.appendChild(r); return r; };
   const btn=(r,txt,on,fn,cls)=>{ const b=el('button','btn'+(on?' '+(cls||'on'):''),txt); b.onclick=fn; r.appendChild(b); return b; };
-  const aiRow=()=>{ const rs=row('tight'); rs.appendChild(el('span','lbl','AI')); for(const a of AI_LEVELS) btn(rs,a[1],AI_TIME===a[0],()=>{ AI_TIME=a[0]; renderHUD(); }); };
+  // 設定の行：左に項目名（幅をそろえる）・右にボタン（折り返しても項目名の右の中）
+  const srow=(label,cls)=>{ const r=el('div','srow'+((label==='駒'||label==='戦力'||label==='物語'||label==='シナリオ')?' full':'')); r.appendChild(el('span','slbl',label)); const b=el('div','sbtns'+(cls?' '+cls:'')); r.appendChild(b); card.appendChild(r); return b; };
+  const nameRow=()=>{ const rn=srow('名前'); rn.appendChild(el('span','sname'+(PROF.name?'':' none'),PROF.name||'未登録')); btn(rn,PROF.name?'変更':'登録',false,()=>{ registerName(); }); };
+  const aiRow=()=>{ const rs=srow('AIの強さ'); for(const a of AI_LEVELS) btn(rs,a[1],AI_TIME===a[0],()=>{ AI_TIME=a[0]; renderHUD(); }); };
+  const powerRow=(lim)=>{ const r2=srow('戦力'); r2.appendChild(el('span','sval',reserveLv()+' / '+lim)); const g=el('div','gauge'); const gf=el('div','gfill'); gf.style.width=Math.min(100,reserveLv()/lim*100)+'%'; gf.style.background=reserveLv()>=lim?'linear-gradient(90deg,#2e8b57,#3fb87a)':'linear-gradient(90deg,#9a7a3a,#d8b461)'; g.appendChild(gf); r2.appendChild(g); };
+  const acts=()=>{ const a=el('div','sacts'); card.appendChild(a); return a; };
   const lvRows=(autoFn)=>{
-    const rl=row('tight'); rl.appendChild(el('span','lbl','上限Lv')); const sq=(t,fn)=>{ const b=el('button','sq',t); b.onclick=fn; rl.appendChild(b); }; sq('－',()=>changeHandLimit(handLimit-1)); rl.appendChild(el('span','lbl sm',String(handLimit))); sq('＋',()=>changeHandLimit(handLimit+1)); for(const v of [10,20,30,40]) btn(rl,''+v,handLimit===v,()=>changeHandLimit(v));
-    const r3=row('tight scroll'); for(const p of PICKABLE){ const cnt=reserve.filter(t=>t===p.type).length; const pk=el('div','pick'); pk.appendChild(el('div','k',PIECE[p.type].label)); pk.appendChild(el('div','lv','Lv'+p.lv)); pk.appendChild(el('div','cnt','×'+cnt)); const pm=el('div','pm'); const mn=el('button',null,'－'); mn.onclick=()=>removeReserve(p.type); const pl=el('button',null,'＋'); pl.onclick=()=>addReserve(p.type,p.lv,p.max); pm.appendChild(mn); pm.appendChild(pl); pk.appendChild(pm); r3.appendChild(pk); }
-    const r2=row('tight'); r2.appendChild(el('span','lbl','戦力 '+reserveLv()+'/'+handLimit)); const g=el('div','gauge'); const gf=el('div','gfill'); gf.style.width=Math.min(100,reserveLv()/handLimit*100)+'%'; gf.style.background=reserveLv()>=handLimit?'linear-gradient(90deg,#2e8b57,#3fb87a)':'linear-gradient(90deg,#9a7a3a,#d8b461)'; g.appendChild(gf); r2.appendChild(g);
-    if(autoFn) btn(r2,'地形で選ぶ',false,autoFn); btn(r2,'おまかせ',false,omakaseArmy); return r2; };
+    const rl=srow('上限Lv'); const sq=(t,fn)=>{ const b=el('button','sq',t); b.onclick=fn; rl.appendChild(b); }; sq('－',()=>changeHandLimit(handLimit-1)); rl.appendChild(el('span','sval',String(handLimit))); sq('＋',()=>changeHandLimit(handLimit+1)); for(const v of [10,20,30,40]) btn(rl,''+v,handLimit===v,()=>changeHandLimit(v));
+    const r3=srow('駒','scroll'); for(const p of PICKABLE){ const cnt=reserve.filter(t=>t===p.type).length; const pk=el('div','pick'); pk.appendChild(el('div','k',PIECE[p.type].label)); pk.appendChild(el('div','lv','Lv'+p.lv)); pk.appendChild(el('div','cnt','×'+cnt)); const pm=el('div','pm'); const mn=el('button',null,'－'); mn.onclick=()=>removeReserve(p.type); const pl=el('button',null,'＋'); pl.onclick=()=>addReserve(p.type,p.lv,p.max); pm.appendChild(mn); pm.appendChild(pl); pk.appendChild(pm); r3.appendChild(pk); }
+    powerRow(handLimit);
+    const r2=acts(); if(autoFn) btn(r2,'地形で選ぶ',false,autoFn); btn(r2,'おまかせ',false,omakaseArmy); return r2; };
   if(state.phase==="army"){
-    const rmap=row('tight'); rmap.appendChild(el('span','lbl','マップ'));
+    if(!online) nameRow();
+    const rmap=srow('マップ');
     const _leave3=()=>{ if(isS3D()){ handLimit=20; reserve=[]; } };
     btn(rmap,'平地戦',!isSiege()&&!isMountain()&&!isScenario()&&!isS3D(),()=>{ if(mapType!=='plain'){ _leave3(); mapType='plain'; setSide(0); newTerrain(false); } enterArmy(); });
     btn(rmap,'攻城戦',isSiege(),()=>{ if(mapType!=='siege'){ _leave3(); mapType='siege'; setSide(0); newTerrain(false); } enterArmy(); });
     btn(rmap,'山',isMountain(),()=>{ if(mapType!=='mountain'){ _leave3(); mapType='mountain'; setSide(0); newTerrain(false); } enterArmy(); });
     btn(rmap,'シナリオ',isScenario()||isS3D(),()=>{ if(isScenario()||isS3D())return; mapType='scenario'; loadScenario(SCENARIOS.koukin); });
-    if(isS3D()){ renderS3DArmy(row,btn,aiRow,el); }
+    if(isS3D()){ renderS3DArmy(srow,btn,aiRow,el,powerRow,acts); }
     else if(isScenario()){
       const cleared=scenCleared(scenario.key); const pName=scenario.pName||'先手', aName=scenario.aName||'後手';
-      const rpick=row('tight'); rpick.appendChild(el('span','lbl','物語')); for(const key in SCENARIOS){ const s=SCENARIOS[key]; btn(rpick,s.name+(scenCleared(key)?' ★':''),scenario.key===key,()=>{ if(scenario.key!==key)loadScenario(SCENARIOS[key]); }); }
-      const rsd=row('tight'); rsd.appendChild(el('span','lbl','陣営'));
+      const rpick=srow('物語'); for(const key in SCENARIOS){ const s=SCENARIOS[key]; btn(rpick,s.name+(scenCleared(key)?' ★':''),scenario.key===key,()=>{ if(scenario.key!==key)loadScenario(SCENARIOS[key]); }); }
+      const rsd=srow('陣営');
       btn(rsd,pName+'(先手)',scenario._playerSide!==1,()=>{ if(scenario._playerSide===1){ scenario._playerSide=0; setSide(0); reserve=scenario.freeArmy?[]:scenario.playerArmy.slice(); newTerrain(false); enterArmy(); } },'you');
       if(scenario.goteSupported){ btn(rsd,aName+'(後手)'+(cleared?'':' 🔒'),scenario._playerSide===1,()=>{ if(!cleared){ setMsg('「'+aName+'(後手)」は一度クリアすると解放されます。'); return; } scenario._playerSide=1; renderHUD(); }); }
-      rsd.appendChild(el('span','lbl sm',(PROF.name||'未登録'))); btn(rsd,PROF.name?'名前変更':'登録',false,()=>{ registerName(); });
       aiRow();
-      if(scenario.freeArmy && scenario._playerSide!==1) lvRows(null);
-      const r4s=row();
+      const r4s=(scenario.freeArmy && scenario._playerSide!==1)?lvRows(null):acts();
       if(scenario._playerSide===1){ btn(r4s,'対局開始（後手・'+aName+'）→',true,()=>{ if(!PROF.name){ if(!registerName())return; } startScenarioGote(); },'go'); }
       else { btn(r4s,'配置へ →',true,()=>{ if(!PROF.name){ if(!registerName())return; } enterPlacement(); },'go'); }
     } else {
-      const r1=row('tight');
-      if(isSiege()){ r1.appendChild(el('span','lbl','役割')); btn(r1,'攻め(砦)',ME===0,()=>{ setSide(0); placeCamera(); enterArmy(); },'you'); btn(r1,'守り(城)',ME===1,()=>{ setSide(1); placeCamera(); enterArmy(); }); }
-      else { r1.appendChild(el('span','lbl','手番')); btn(r1,'先攻',humanFirst,()=>{humanFirst=true; renderHUD(); document.getElementById('btnFirst').textContent='先攻：あなた'; document.getElementById('btnFirst').className='btn you';},'you'); btn(r1,'後攻',!humanFirst,()=>{humanFirst=false; renderHUD(); document.getElementById('btnFirst').textContent='先攻：敵軍'; document.getElementById('btnFirst').className='btn';}); }
-      r1.appendChild(el('span','lbl','森・川')); for(const a of [['sparse','少'],['normal','普'],['dense','多']]) btn(r1,a[1],density===a[0],()=>{ density=a[0]; newTerrain(false); enterArmy(); });
-      r1.appendChild(el('span','lbl','AI')); for(const a of AI_LEVELS) btn(r1,a[1],AI_TIME===a[0],()=>{ AI_TIME=a[0]; renderHUD(); });
+      const r1=srow(isSiege()?'役割':'手番');
+      if(isSiege()){ btn(r1,'攻め(砦)',ME===0,()=>{ setSide(0); placeCamera(); enterArmy(); },'you'); btn(r1,'守り(城)',ME===1,()=>{ setSide(1); placeCamera(); enterArmy(); }); }
+      else { btn(r1,'先攻',humanFirst,()=>{humanFirst=true; renderHUD(); document.getElementById('btnFirst').textContent='先攻：あなた'; document.getElementById('btnFirst').className='btn you';},'you'); btn(r1,'後攻',!humanFirst,()=>{humanFirst=false; renderHUD(); document.getElementById('btnFirst').textContent='先攻：敵軍'; document.getElementById('btnFirst').className='btn';}); }
+      const rd=srow('森・川'); for(const a of [['sparse','少'],['normal','普'],['dense','多']]) btn(rd,a[1],density===a[0],()=>{ density=a[0]; newTerrain(false); enterArmy(); });
+      aiRow();
       const r2=lvRows(autoArmy); btn(r2,'配置へ →',true,enterPlacement,'go');
     }
   } else if(state.phase==="placement"){
@@ -3544,7 +3617,7 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
     const rk=row('tight scroll'); rk.appendChild(el('span','lbl','棋譜')); const hh=state.history||[]; if(!hh.length)rk.appendChild(el('span','kifu','—')); for(let i=Math.max(0,hh.length-14);i<hh.length;i++){ const k=el('span','kifu'); const b=el('b',null,(i+1)+'.'); k.appendChild(b); k.appendChild(document.createTextNode(formatMove(hh[i],ME))); rk.appendChild(k); }
     if(state.phase==="play"&&state.turn===ME&&state.selected){ const _sp=state.board[state.selected[0]][state.selected[1]];
       if(_sp&&canFire(_sp)){ const _r=state.selected[0],_c=state.selected[1]; const _ready=state.fireReady; const _onF=onForest(_r,_c); const _adj=adjForestCount(_r,_c);
-        const rf=row('tight'); const lbl=_ready?'🔥 火計を発動':('🔥 火計：'+(!_onF?'森の上で':'周囲の森 '+_adj+'/6'));
+        const rf=row('tight'); const lbl=_ready?'🔥 火計を発動':('🔥 火計：'+(!_onF?'森の上で':'周りの森 '+_adj+'/5'));
         const fb=el('button','btn',lbl); fb.style.cssText='background:'+(_ready?'linear-gradient(180deg,#d9531e,#9a3410)':'#3a2a1a')+';border-color:'+(_ready?'#ffb070':'#7a5a40')+';color:#fff;font-weight:800'+(_ready?'':';opacity:.7'); fb.disabled=!_ready;
         fb.onclick=()=>{ const s=state.selected; if(s&&state.fireReady)doFire(s[0],s[1]); }; rf.appendChild(fb); } }
     if(huangManualPending()){ const hp=huangPiece(ME); const sel=state.selected&&hp&&state.selected[0]===hp[0]&&state.selected[1]===hp[1]; const rf=row('tight'); const fb=el('button','btn',sel?'🔥 黄蓋の火計を発動':'黄蓋のと金(6四)を選ぶ'); fb.style.cssText='background:'+(sel?'linear-gradient(180deg,#d9531e,#9a3410)':'#3a2a1a')+';border-color:#ffb070;color:#fff;font-weight:800'; fb.onclick=()=>{ if(sel)doHuangManual(); else { setMsg("まず黄蓋のと金(6四)をタップしてください。"); } }; rf.appendChild(fb); }
@@ -3553,7 +3626,7 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
     if(!online){ btn(r,'配置に戻る',false,()=>{ if(state.phase==="play"&&!confirm("配置に戻ると今の対局は最初からになります。よろしいですか？"))return; enterPlacement(); }); const n=(window.__trainCount?window.__trainCount():0); const recN=(GLOG&&GLOG.plys?GLOG.plys.length:0); const tg=el('span','lbl sm','学習 '+n+'局・'+recN+'手'); tg.style.marginLeft='auto'; r.appendChild(tg); }
   }
   const msg=el('div'); msg.id='msg'; const txt=el('span'); txt.id='msgtext';
-  if(state.phase!=="placement"){ const chip=el('span'); chip.id='turnchip';
+  if(state.phase!=="placement"&&state.phase!=="army"){ const chip=el('span'); chip.id='turnchip';
     if(state.phase==="play"||state.phase==="over"){ chip.textContent= state.winner!==null?(state.winner===ME?'勝利':'敗北'):(state.turn===ME?'あなたの番':'敵の番'); chip.style.color=state.turn===ME?'#9ec0ff':'#ff9a86'; chip.style.borderColor=state.turn===ME?'#3f73d6':'#b7332a'; } else chip.textContent='駒選び';
     msg.appendChild(chip); }
   if(state.phase==="play"&&terrain&&(terrain.hold||terrain.judge)){ const _hc=el('span'); _hc.id='holdchip'; _hc.textContent=(terrain.hold?(terrain.hold.side===ME?'守り切りまで':'時間切れまで'):'判定まで')+' 残り'+Math.max(0,(terrain.hold||terrain.judge).n-(state.history||[]).length)+'手'; _hc.style.cssText='font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;border:1px solid var(--gold2);color:var(--gold3);white-space:nowrap'; msg.appendChild(_hc); }
@@ -3568,7 +3641,8 @@ function endBanner(){ try{glogEnd();}catch(e){} try{clearSession();}catch(e){} i
 
 /* ---- ボタン ---- */
 document.getElementById('tAI').onclick=()=>{ document.getElementById('title').style.display='none'; if(!state||state.phase==='over')enterArmy(); layout(); };
-document.getElementById('tOnline').onclick=()=>{ document.getElementById('online').style.display='block'; document.getElementById('tnote').textContent=''; };
+document.getElementById('tOnline').onclick=()=>{ document.getElementById('online').style.display='block'; document.getElementById('tnote').textContent=''; const ni=document.getElementById('olName'); if(ni&&!ni.value&&PROF.name)ni.value=PROF.name; };
+document.getElementById('olName').addEventListener('change',()=>{ const v=nameVal(); if(v&&!PROF.name){ PROF.name=v; saveProf(); } });
 (function(){ var be=document.getElementById('tExport'); if(be){ be.onclick=exportTrain; var ne=document.getElementById('tTrainN'); function upd(){ if(ne)ne.textContent=(window.__trainCount?window.__trainCount():0); } upd(); setInterval(upd,3000); } })();
 document.getElementById('btnTitle').onclick=()=>{ document.getElementById('title').style.display='flex'; setChatOpen(false); };
 document.getElementById('btnView').onclick=()=>{ userCam=false; fitCamera(); };
@@ -3710,7 +3784,7 @@ try{ flushTrainBacklog(); }catch(_){}
 document.getElementById('olHost').onclick=srvHost;
 document.getElementById('olJoin').onclick=srvJoin;
 (function(){ const mp=document.getElementById('olMapPlain'),ms=document.getElementById('olMapSiege'),mm=document.getElementById('olMapMountain'),rr=document.getElementById('olRoleRow'),ra=document.getElementById('olRoleAtk'),rd=document.getElementById('olRoleDef');
-  function setMap(s){ mapType=s; mp.className='btn'+(s==='plain'?' on':''); ms.className='btn'+(s==='siege'?' on':''); if(mm)mm.className='btn'+(s==='mountain'?' on':''); rr.style.display=(s==='siege')?'block':'none'; }
+  function setMap(s){ mapType=s; mp.className='btn'+(s==='plain'?' on':''); ms.className='btn'+(s==='siege'?' on':''); if(mm)mm.className='btn'+(s==='mountain'?' on':''); rr.style.display=(s==='siege')?'flex':'none'; }
   function setRole(atk){ olAttack=atk; ra.className='btn'+(atk?' on':''); rd.className='btn'+(!atk?' on':''); }
   var lvVals=[10,20,30,40], lvBtns=lvVals.map(function(v){return document.getElementById('olLv'+v);});
   function setLv(v){ handLimit=v; lvBtns.forEach(function(b,i){ if(b)b.className='btn'+(lvVals[i]===v?' on':''); }); }   // ホストが部屋作成前に合計Lvを選ぶ（create時に送信）
@@ -3733,6 +3807,7 @@ function fxTex(kind){ if(_fxTex[kind])return _fxTex[kind]; const [cv,x]=cvs(64,6
   else if(kind==='puff'){ const g=x.createRadialGradient(32,32,2,32,32,30); g.addColorStop(0,'rgba(255,255,255,0.9)'); g.addColorStop(0.5,'rgba(255,255,255,0.5)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.beginPath(); x.arc(32,32,30,0,7); x.fill(); }
   else if(kind==='slash'){ x.strokeStyle='rgba(255,255,255,1)'; x.lineCap='round'; x.lineWidth=7; x.shadowColor='rgba(255,240,200,0.9)'; x.shadowBlur=8; x.beginPath(); x.arc(32,60,46,Math.PI*1.2,Math.PI*1.8); x.stroke(); x.lineWidth=2.5; x.strokeStyle='rgba(255,220,120,0.9)'; x.beginPath(); x.arc(32,60,40,Math.PI*1.22,Math.PI*1.78); x.stroke(); }
   else if(kind==='spark'){ x.fillStyle='#fff'; x.shadowColor='#ffd34a'; x.shadowBlur=10; x.beginPath(); x.moveTo(32,4); x.lineTo(38,26); x.lineTo(60,32); x.lineTo(38,38); x.lineTo(32,60); x.lineTo(26,38); x.lineTo(4,32); x.lineTo(26,26); x.closePath(); x.fill(); }
+  else if(kind==='cring'){ x.shadowColor='#ff2a1a'; x.shadowBlur=9; x.strokeStyle='rgba(255,70,50,1)'; x.lineWidth=6; x.beginPath(); x.arc(32,32,25,0,7); x.stroke(); x.lineWidth=2; x.strokeStyle='rgba(255,210,190,0.95)'; x.beginPath(); x.arc(32,32,19,0,7); x.stroke(); }
   else if(kind==='ring'){ x.strokeStyle='rgba(255,230,140,1)'; x.lineWidth=5; x.shadowColor='#ffd34a'; x.shadowBlur=8; x.beginPath(); x.arc(32,32,26,0,7); x.stroke(); }
   const t=new THREE.CanvasTexture(cv); _fxTex[kind]=t; return t; }
 const flameTex=fxTex('flame');
