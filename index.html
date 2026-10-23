@@ -115,6 +115,62 @@
   #cldMsg.err { color:#e57b70; }
   .rclose { position:absolute; top:8px; right:14px; cursor:pointer; font-size:20px; color:var(--gold); pointer-events:auto; }
   #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:14px; letter-spacing:2px; }
+  /* ===== 陣取り（2026-10-24 conquest） ===== */
+  body.cqb #btnNew, body.cqb #btnFirst, body.cqb #btnChat { display:none; }
+  #cq { position:fixed; inset:0; z-index:45; display:none; flex-direction:column; background:radial-gradient(ellipse at 50% 38%,#1e1712,#0b0907 75%); color:var(--paper); }
+  #cq.on { display:flex; }
+  #cqTop { flex:0 0 auto; display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px solid var(--gold2); background:linear-gradient(180deg,#1d1612,#110d0a); }
+  #cqDate { font:900 17px/1 'Yu Mincho','Hiragino Mincho ProN',serif; color:var(--gold); letter-spacing:2px; white-space:nowrap; }
+  .cqv { font-size:11.5px; color:var(--mute); white-space:nowrap; }
+  .cqv b { color:var(--gold3); font-size:14px; margin-left:2px; }
+  #cqNext { margin-left:auto; padding:8px 12px; font-size:13px; }
+  #cqMap { flex:1 1 auto; position:relative; overflow:hidden; min-height:200px; }
+  #cqSvg, #cqNodes { position:absolute; inset:0; width:100%; height:100%; }
+  .cqn { position:absolute; transform:translate(-50%,-50%); width:46px; height:46px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; border:2px solid rgba(0,0,0,.55); box-shadow:0 2px 8px rgba(0,0,0,.75); color:#fff; text-shadow:0 1px 2px #000; user-select:none; }
+  .cqn .nm { font:900 13px/1.05 'Yu Mincho','Hiragino Mincho ProN',serif; }
+  .cqn .t { font:800 10px/1.1 sans-serif; opacity:.92; }
+  .cqn.cas { border-radius:9px; }
+  .cqn.me { border-color:var(--gold3); box-shadow:0 0 0 2px rgba(240,214,138,.35),0 2px 8px #000; }
+  .cqn.sel { outline:3px solid #fff; outline-offset:2px; }
+  .cqn.tgt { box-shadow:0 0 0 3px #ffd54a,0 0 16px #ffd54a; }
+  .cqn.lock { width:32px; height:32px; background:#231d19 !important; color:#6f6658; border:1px dashed #4a4038; box-shadow:none; cursor:default; text-shadow:none; }
+  .cqn.lock .nm { font-size:11px; }
+  #cqSheet { flex:0 0 auto; display:none; max-height:56vh; overflow-y:auto; overscroll-behavior:contain; padding:8px 12px 10px; border-top:1px solid var(--gold); background:linear-gradient(180deg,#1d1612,#0f0b09); box-shadow:0 -10px 30px rgba(0,0,0,.6); }
+  #cqBot { flex:0 0 auto; display:flex; gap:6px; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); border-top:1px solid var(--gold2); background:#110d0a; }
+  #cqBot .btn { flex:1 1 0; padding:9px 4px; font-size:12.5px; }
+  .cqrow { display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:6px 0; }
+  .cqk { flex:0 0 3.4em; white-space:nowrap; font-size:11px; font-weight:800; color:var(--gold); letter-spacing:1px; }
+  .cqh { font:900 18px/1.2 'Yu Mincho','Hiragino Mincho ProN',serif; color:var(--gold); letter-spacing:2px; }
+  .cqx { margin-left:auto; cursor:pointer; font-size:20px; color:var(--gold); padding:0 4px; }
+  .cqfac { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11.5px; font-weight:800; color:#fff; text-shadow:0 1px 1px #000; }
+  .cqlv { position:relative; display:inline-block; padding:3px 8px 5px; border:1px solid #4a3a28; border-radius:5px; font-size:12px; font-weight:800; background:#1a1310; overflow:hidden; }
+  .cqlv i { position:absolute; left:0; bottom:0; height:2px; background:var(--gold); }
+  .cqnum { font-size:13px; font-weight:800; color:var(--paper); white-space:nowrap; }
+  .cqtr { font-size:11px; font-weight:800; color:#1a1208; background:var(--gold); border-radius:4px; padding:2px 6px; }
+  .cqgen { display:inline-flex; align-items:center; gap:4px; padding:5px 9px; border:1px solid var(--gold2); border-radius:15px; background:#2a211a; font-size:12.5px; font-weight:800; cursor:pointer; min-height:30px; box-sizing:border-box; }
+  .cqgen i { font-style:normal; font-family:'Yu Mincho','Hiragino Mincho ProN',serif; color:var(--gold3); }
+  .cqgen b { color:var(--gold3); font-size:11px; }
+  .cqgen.on { background:linear-gradient(180deg,#c49a35,#8f6d1f); color:#1a1208; border-color:var(--gold3); }
+  .cqgen.on i, .cqgen.on b { color:#1a1208; }
+  .cqgen.done { opacity:.45; }
+  .cqcap { display:inline-flex; align-items:center; gap:4px; }
+  .cqpm { display:inline-flex; align-items:center; gap:3px; margin-right:4px; }
+  .cqpm b { font-family:'Yu Mincho','Hiragino Mincho ProN',serif; color:var(--gold3); font-size:15px; }
+  .cqpm button { width:30px; height:32px; border-radius:5px; border:1px solid var(--gold2); background:#2a211a; color:#fff; font-weight:800; cursor:pointer; padding:0; }
+  .cqpm .cqnum { min-width:1.4em; text-align:center; }
+  #cqModal { position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(8,6,4,.84); z-index:3; }
+  .cqcard { width:380px; max-width:94vw; max-height:88vh; overflow-y:auto; box-sizing:border-box; background:linear-gradient(180deg,#1d1612,#110d0a); border:1px solid var(--gold2); outline:1px solid rgba(216,180,97,.28); outline-offset:4px; border-radius:6px; padding:16px 16px 12px; box-shadow:0 24px 70px #000; }
+  .cqttl { font:900 40px/1.1 'Yu Mincho','Hiragino Mincho ProN',serif; color:var(--gold); letter-spacing:8px; text-align:center; text-shadow:0 2px 0 #3a2a10,0 8px 22px rgba(0,0,0,.9); }
+  .cqsub { text-align:center; font-size:11px; color:var(--mute); letter-spacing:2px; margin:8px 0 10px; }
+  .cqbig { font:900 34px/1.2 'Yu Mincho','Hiragino Mincho ProN',serif; letter-spacing:10px; text-align:center; margin:4px 0 8px; }
+  .cqcard .btn.big { width:100%; max-width:none; margin:4px 0; }
+  .cqtbl { width:100%; border-collapse:collapse; font-size:12.5px; margin:6px 0; }
+  .cqtbl th { color:var(--gold); font-size:11px; font-weight:800; text-align:right; padding:3px 4px; border-bottom:1px solid var(--gold2); }
+  .cqtbl td { text-align:right; padding:5px 4px; border-bottom:1px solid #2e241c; font-weight:700; }
+  .cqtbl td:first-child, .cqtbl th:first-child { text-align:left; }
+  #cqToast { position:absolute; left:50%; top:56px; transform:translateX(-50%); background:rgba(20,15,10,.95); border:1px solid var(--gold); color:var(--gold3); font-weight:800; font-size:13px; padding:6px 14px; border-radius:16px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:4; }
+  #cqToast.on { opacity:1; }
+  @media (max-width:380px){ #cqTop { gap:6px; padding:7px 8px; } #cqDate { font-size:15px; } .cqv b { font-size:13px; } #cqNext { padding:7px 9px; font-size:12px; } .cqgen { padding:4px 7px; font-size:12px; } }
   @media (max-width:640px){ #chatpanel { width:84vw; } .btn { padding:5px 7px; font-size:11px; } #panel { max-height:38vh; } .tlogo { font-size:38px; } #top { flex-wrap:wrap; white-space:normal; gap:4px; padding:5px 6px; } #top .title { font-size:13px; } }
 </style>
 </head>
@@ -141,8 +197,9 @@
 <div id="title">
   <div class="tcard">
     <div class="tlogo">地形将棋<span class="seal">三國</span></div>
-    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-24-hill</span></div>
+    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-24-conquest</span></div>
     <button class="btn go big" id="tAI">コンピューターと対戦</button>
+    <button class="btn big" id="tConq" style="background:linear-gradient(180deg,#8a6a24,#5a4212);color:#fff;border-color:#f0d68a">陣取り</button>
     <button class="btn big" id="tOnline" style="background:linear-gradient(180deg,#6f4a9a,#4b2f6e);color:#fff;border-color:#b797e0">オンライン対戦</button>
     <button class="btn big" id="tRules">ルール</button>
     <button class="btn big" id="tCloud">☁ データ引き継ぎ</button>
@@ -220,6 +277,14 @@
 <div id="banner"><div class="inner"><div class="big" id="bannerBig"></div><div id="bannerSub"></div>
   <button class="btn go" id="btnAgain" style="margin-top:12px;">もう一度</button></div></div>
 
+<div id="cq">
+  <div id="cqTop"><span id="cqDate">陣取り</span><span class="cqv">金<b id="cqGold">-</b></span><span class="cqv">兵糧<b id="cqFood">-</b></span><span class="cqv" id="cqLeft"></span><button class="btn go" id="cqNext">月を進める</button></div>
+  <div id="cqMap"><svg id="cqSvg" xmlns="http://www.w3.org/2000/svg"></svg><div id="cqNodes"></div></div>
+  <div id="cqSheet"></div>
+  <div id="cqBot"><button class="btn" id="cqAllAuto">全委任</button><button class="btn" id="cqFacs">勢力</button><button class="btn" id="cqSave">保存</button><button class="btn" id="cqTitle">タイトル</button></div>
+  <div id="cqModal"></div>
+  <div id="cqToast"></div>
+</div>
 <script>/*t*/
 /**
  * @license
@@ -3111,13 +3176,15 @@ function cloudErr(e){ const d=(e&&e.d)||{}; switch(e&&e.code){
 function cloudPayload(){ let train=[], coach=[];
   try{ coach=JSON.parse(localStorage.getItem('tshogi_coach')||'[]'); }catch(e){} if(!Array.isArray(coach))coach=[]; coach=coach.slice(-CLOUD_COACH_MAX);
   try{ const all=JSON.parse(localStorage.getItem('tshogi_train')||'[]'); let used=0; for(let i=all.length-1;i>=0;i--){ const n=JSON.stringify(all[i]).length; if(used+n>CLOUD_TRAIN_BUDGET)break; used+=n; train.unshift(all[i]); } }catch(e){}
-  return {v:1,app:'tshogi3d',ts:Date.now(),prof:{name:PROF.name||'',cleared:PROF.cleared||{}},coach,train}; }
+  let conquest=null; try{ conquest=JSON.parse(localStorage.getItem('tshogi_conquest')||'null'); }catch(e){}   // 陣取り(v:2で追加)
+  return {v:2,app:'tshogi3d',ts:Date.now(),prof:{name:PROF.name||'',cleared:PROF.cleared||{}},coach,train,conquest}; }
 function cloudApply(d){ if(!d||d.app!=='tshogi3d'||!d.prof||typeof d.prof!=='object')throw Object.assign(new Error('bad'),{code:'bad_data'});
   PROF={name:String(d.prof.name||''),cleared:(d.prof.cleared&&typeof d.prof.cleared==='object')?d.prof.cleared:{}};
   try{ localStorage.setItem('shogi_prof',JSON.stringify(PROF)); }catch(e){}
   try{ localStorage.setItem('tshogi_coach',JSON.stringify(Array.isArray(d.coach)?d.coach:[])); }catch(e){}
   try{ localStorage.setItem('tshogi_train',JSON.stringify(Array.isArray(d.train)?d.train:[])); }catch(e){}
   try{ localStorage.setItem('tshogi_up_v1','1'); }catch(e){}   // 引き継いだ学習データをサーバーへ再送しない
+  try{ if(d.conquest&&typeof d.conquest==='object'){ localStorage.setItem('tshogi_conquest',JSON.stringify(d.conquest)); if(typeof CQ!=='undefined'&&!CQB)CQ=null; } }catch(e){}   // 陣取り(v:2から。v:1 には無い)
   try{ const ne=document.getElementById('tTrainN'); if(ne)ne.textContent=(Array.isArray(d.train)?d.train.length:0); }catch(e){}
   try{ if(typeof state!=='undefined'&&state)renderHUD(); }catch(e){} }
 let _cldTimer=null, _cldBusy=false, _cldDirty=false, _cldRetry=0;
@@ -4096,6 +4163,447 @@ window.__autoplace=function(){ // テスト用: 自分側も自動配置
   syncScene(); buildStructures(); renderHUD(); return allPlaced(); };
 window.__pick=function(item){ trayPick=item; syncMarkers(); return markerGroup.children.length; };
 window.__zoom=function(mult){ camR=Math.max(BOARD*0.5,Math.min(BOARD*2.2,BOARD*mult)); userCam=true; applyCam(); return +camR.toFixed(1); };
+</script>
+<script>
+/* ===== 陣取り（2026-10-24 conquest）＝最小版「赤壁前夜（小）」。地図・内政・徴兵・訓練・出陣→今の対局→結果を地図へ返す。端末の中だけで動く（サーバーのルールは使わない） ===== */
+/*CQ-DATA-BEGIN*/
+const CQ_CITIES=[{"id":"ji","n":"薊","x":70,"y":8,"t":"plain","pop":18,"a":2,"c":2,"b":2,"w":1,"adj":["jinyang","ye","beihai"]},{"id":"jinyang","n":"晋陽","x":50,"y":20,"t":"mountain","pop":12,"a":1,"c":1,"b":2,"w":1,"adj":["ji","ye","luoyang","changan"]},{"id":"ye","n":"鄴","x":63,"y":24,"t":"castle","pop":34,"a":3,"c":3,"b":3,"w":2,"adj":["ji","jinyang","beihai","puyang","luoyang"],"bf":{"puyang":"guandu"}},{"id":"beihai","n":"北海","x":84,"y":28,"t":"plain","pop":20,"a":2,"c":2,"b":1,"w":0,"adj":["ji","ye","puyang","xiapi"],"bf":{"*":"s3d_koukin"}},{"id":"puyang","n":"濮陽","x":68,"y":35,"t":"plain","pop":22,"a":3,"c":2,"b":2,"w":1,"adj":["ye","beihai","xiapi","xuchang","luoyang"],"bf":{"ye":"guandu"}},{"id":"xiapi","n":"下邳","x":82,"y":43,"t":"river","pop":22,"a":3,"c":2,"b":2,"w":1,"adj":["beihai","puyang","xuchang","shouchun","jianye"]},{"id":"luoyang","n":"洛陽","x":50,"y":38,"t":"castle","pop":30,"a":2,"c":4,"b":2,"w":3,"adj":["jinyang","ye","puyang","xuchang","changan","wan"],"bf":{"puyang":"hulao","xuchang":"hulao","ye":"hulao"}},{"id":"xuchang","n":"許昌","x":64,"y":45,"t":"castle","pop":30,"a":3,"c":3,"b":3,"w":2,"adj":["puyang","xiapi","luoyang","wan","shouchun"]},{"id":"changan","n":"長安","x":32,"y":40,"t":"castle","pop":28,"a":2,"c":3,"b":3,"w":3,"adj":["jinyang","luoyang","tianshui","hanzhong","wan"],"bf":{"hanzhong":"s3d_gojo"}},{"id":"tianshui","n":"天水","x":12,"y":36,"t":"mountain","pop":10,"a":1,"c":1,"b":3,"w":1,"adj":["changan","hanzhong"],"bf":{"*":"s3d_gaitei"}},{"id":"hanzhong","n":"漢中","x":26,"y":53,"t":"mountain","pop":14,"a":2,"c":1,"b":2,"w":2,"adj":["tianshui","changan","chengdu"],"bf":{"*":"s3d_teigun"}},{"id":"wan","n":"宛","x":50,"y":52,"t":"plain","pop":24,"a":3,"c":2,"b":2,"w":1,"adj":["luoyang","xuchang","changan","xiangyang"]},{"id":"shouchun","n":"寿春","x":72,"y":55,"t":"river","pop":20,"a":3,"c":2,"b":2,"w":2,"adj":["xuchang","xiapi","jianye","jiangxia"],"bf":{"jianye":"s3d_goppi"}},{"id":"jianye","n":"建業","x":86,"y":61,"t":"castle","pop":26,"a":3,"c":3,"b":2,"w":3,"adj":["xiapi","shouchun","jiangxia"]},{"id":"xiangyang","n":"襄陽","x":48,"y":63,"t":"castle","pop":26,"a":3,"c":3,"b":2,"w":3,"adj":["wan","jiangling","jiangxia"],"bf":{"jiangling":"s3d_hanjo"}},{"id":"chengdu","n":"成都","x":10,"y":70,"t":"castle","pop":32,"a":4,"c":3,"b":2,"w":3,"adj":["hanzhong","yongan"]},{"id":"yongan","n":"永安","x":28,"y":68,"t":"forest","pop":10,"a":1,"c":1,"b":2,"w":1,"adj":["chengdu","jiangling"],"bf":{"jiangling":"s3d_iryou"}},{"id":"jiangling","n":"江陵","x":44,"y":73,"t":"river","pop":22,"a":3,"c":2,"b":2,"w":2,"adj":["xiangyang","yongan","jiangxia","changsha"],"bf":{"xiangyang":"s3d_chouhan","yongan":"s3d_iryou","jiangxia":"chibi"}},{"id":"jiangxia","n":"江夏","x":62,"y":71,"t":"river","pop":16,"a":2,"c":2,"b":2,"w":1,"adj":["xiangyang","jiangling","shouchun","jianye","changsha"],"bf":{"jiangling":"chibi"}},{"id":"changsha","n":"長沙","x":52,"y":86,"t":"hill","pop":18,"a":3,"c":2,"b":1,"w":1,"adj":["jiangling","jiangxia"]}];
+const CQ_GEN={"caocao":{"n":"曹操","b":72,"t":96,"c":91,"p":94,"pc":"K","r":1,"tr":"覇王"},"liubei":{"n":"劉備","b":73,"t":78,"c":74,"p":80,"pc":"K","r":1,"tr":"仁徳"},"sunquan":{"n":"孫権","b":66,"t":76,"c":80,"p":88,"pc":"K","r":1,"tr":"守成"},"yuanshao":{"n":"袁紹","b":68,"t":82,"c":70,"p":74,"pc":"K","r":1,"tr":"名門"},"dongzhuo":{"n":"董卓","b":86,"t":80,"c":66,"p":28,"pc":"K","r":1,"tr":"暴政"},"sunjian":{"n":"孫堅","b":90,"t":92,"c":72,"p":60,"pc":"K","r":1,"tr":"神速"},"sunce":{"n":"孫策","b":94,"t":92,"c":72,"p":64,"pc":"K","r":1,"tr":"猛将"},"liuzhang":{"n":"劉璋","b":30,"t":40,"c":58,"p":66,"pc":"K","r":1,"tr":"守成"},"mateng":{"n":"馬騰","b":86,"t":84,"c":50,"p":52,"pc":"K","r":1,"tr":"騎兵"},"xiahoudun":{"n":"夏侯惇","b":92,"t":88,"c":58,"p":64,"pc":"R","tr":"猛将"},"xiahouyuan":{"n":"夏侯淵","b":91,"t":86,"c":56,"p":48,"pc":"R","tr":"神速"},"zhangliao":{"n":"張遼","b":92,"t":95,"c":78,"p":58,"pc":"B","tr":"神速"},"xuchu":{"n":"許褚","b":96,"t":64,"c":36,"p":20,"pc":"R","tr":"猛将"},"caoren":{"n":"曹仁","b":86,"t":91,"c":62,"p":58,"pc":"B","tr":"堅守"},"xunyu":{"n":"荀彧","b":32,"t":60,"c":95,"p":98,"pc":"S","tr":"王佐"},"guojia":{"n":"郭嘉","b":20,"t":68,"c":98,"p":82,"pc":"G","tr":"看破"},"jiaxu":{"n":"賈詡","b":40,"t":80,"c":97,"p":84,"pc":"G"},"dianwei":{"n":"典韋","b":95,"t":58,"c":32,"p":22,"pc":"R","tr":"猛将"},"zhanghe":{"n":"張郃","b":88,"t":90,"c":70,"p":52,"pc":"B","tr":"神速"},"yujin":{"n":"于禁","b":78,"t":88,"c":62,"p":58,"pc":"B","tr":"堅守"},"yuejin":{"n":"楽進","b":86,"t":78,"c":50,"p":44,"pc":"R"},"lidian":{"n":"李典","b":76,"t":80,"c":70,"p":62,"pc":"B"},"xuhuang":{"n":"徐晃","b":90,"t":86,"c":60,"p":44,"pc":"R"},"caohong":{"n":"曹洪","b":82,"t":74,"c":42,"p":40,"pc":"R"},"chengyu":{"n":"程昱","b":50,"t":74,"c":92,"p":82,"pc":"G","tr":"補給"},"zangba":{"n":"臧覇","b":80,"t":76,"c":50,"p":48,"pc":"R"},"zhongyao":{"n":"鍾繇","b":24,"t":50,"c":80,"p":90,"pc":"S","tr":"王佐"},"guanyu":{"n":"関羽","b":96,"t":97,"c":76,"p":64,"pc":"B","tr":"猛将"},"zhangfei":{"n":"張飛","b":98,"t":85,"c":32,"p":24,"pc":"R","tr":"猛将"},"zhaoyun":{"n":"趙雲","b":95,"t":88,"c":76,"p":66,"pc":"R","tr":"猛将"},"zhugeliang":{"n":"孔明","b":38,"t":94,"c":100,"p":96,"pc":"G","tr":"八陣"},"pangtong":{"n":"龐統","b":34,"t":80,"c":97,"p":86,"pc":"S","tr":"看破"},"huangzhong":{"n":"黄忠","b":93,"t":84,"c":60,"p":52,"pc":"R","tr":"神弓"},"mizhu":{"n":"糜竺","b":30,"t":40,"c":62,"p":82,"pc":"S","tr":"補給"},"jianyong":{"n":"簡雍","b":28,"t":36,"c":68,"p":72,"pc":"S"},"zhouyu":{"n":"周瑜","b":72,"t":96,"c":95,"p":84,"pc":"B","tr":"築城"},"lusu":{"n":"魯粛","b":54,"t":80,"c":90,"p":92,"pc":"S","tr":"補給"},"ganning":{"n":"甘寧","b":94,"t":84,"c":62,"p":30,"pc":"R","tr":"神速"},"huanggai":{"n":"黄蓋","b":84,"t":80,"c":66,"p":56,"pc":"R","tr":"猛将"},"luxun":{"n":"陸遜","b":64,"t":94,"c":96,"p":90,"pc":"G","tr":"堅守"},"taishici":{"n":"太史慈","b":93,"t":82,"c":64,"p":48,"pc":"R","tr":"神弓"},"chengpu":{"n":"程普","b":76,"t":84,"c":68,"p":60,"pc":"B"},"handang":{"n":"韓当","b":82,"t":78,"c":48,"p":46,"pc":"R"},"yanliang":{"n":"顔良","b":94,"t":80,"c":40,"p":30,"pc":"R","tr":"猛将"},"wenchou":{"n":"文醜","b":93,"t":78,"c":34,"p":28,"pc":"R","tr":"猛将"},"tianfeng":{"n":"田豊","b":30,"t":72,"c":94,"p":82,"pc":"G","tr":"看破"},"jushou":{"n":"沮授","b":34,"t":82,"c":92,"p":86,"pc":"G","tr":"補給"},"gaolan":{"n":"高覧","b":82,"t":76,"c":44,"p":40,"pc":"R"},"lvbu":{"n":"呂布","b":100,"t":90,"c":30,"p":18,"pc":"R","tr":"猛将"},"huaxiong":{"n":"華雄","b":90,"t":76,"c":40,"p":30,"pc":"R","tr":"猛将"},"liru":{"n":"李儒","b":26,"t":58,"c":90,"p":78,"pc":"G","tr":"看破"},"lijue":{"n":"李傕","b":80,"t":74,"c":40,"p":22,"pc":"R"},"xurong":{"n":"徐栄","b":74,"t":82,"c":58,"p":40,"pc":"B"},"fazheng":{"n":"法正","b":46,"t":76,"c":94,"p":82,"pc":"G","tr":"看破"},"zhangren":{"n":"張任","b":84,"t":88,"c":68,"p":50,"pc":"B","tr":"堅守"},"yanyan":{"n":"厳顔","b":82,"t":80,"c":62,"p":56,"pc":"R","tr":"堅守"},"huangquan":{"n":"黄権","b":40,"t":74,"c":82,"p":78,"pc":"G"},"machao":{"n":"馬超","b":97,"t":88,"c":44,"p":30,"pc":"R","tr":"騎兵"},"pangde":{"n":"龐徳","b":94,"t":78,"c":56,"p":40,"pc":"R","tr":"猛将"},"hansui":{"n":"韓遂","b":70,"t":82,"c":72,"p":68,"pc":"B"},"n_zhanglu":{"n":"張魯","b":40,"t":62,"c":70,"p":74,"pc":"K"},"n_hanxuan":{"n":"韓玄","b":40,"t":50,"c":40,"p":44,"pc":"K"},"n_liubiao":{"n":"劉表","b":38,"t":64,"c":76,"p":82,"pc":"K"},"n_caimao":{"n":"蔡瑁","b":64,"t":76,"c":66,"p":60,"pc":"B"},"n_huangzu":{"n":"黄祖","b":66,"t":70,"c":50,"p":44,"pc":"K"},"n_liuyan":{"n":"劉焉","b":50,"t":66,"c":74,"p":78,"pc":"K"},"n_taoqian":{"n":"陶謙","b":48,"t":60,"c":62,"p":72,"pc":"K"},"n_gongsunzan":{"n":"公孫瓚","b":84,"t":86,"c":60,"p":54,"pc":"K"},"n_yuanshu":{"n":"袁術","b":60,"t":70,"c":62,"p":54,"pc":"K"},"n_jiling":{"n":"紀霊","b":86,"t":76,"c":46,"p":38,"pc":"R"},"n_zhangyang":{"n":"張楊","b":66,"t":70,"c":50,"p":54,"pc":"K"},"n_liuyao":{"n":"劉繇","b":40,"t":60,"c":64,"p":70,"pc":"K"},"n_shusho":{"n":"守将","b":60,"t":60,"c":50,"p":50,"pc":"K"}};
+const CQ_HIST={"s3d_koukin":{"n":"黄巾","d":1},"s3d_chouhan":{"n":"長坂坡","d":0},"s3d_goppi":{"n":"合肥","d":0},"s3d_teigun":{"n":"定軍山","d":1},"s3d_hanjo":{"n":"樊城","d":1},"s3d_iryou":{"n":"夷陵","d":0},"s3d_gaitei":{"n":"街亭","d":0},"s3d_gojo":{"n":"五丈原","d":1}};
+const CQ_SC={mvp:{"n":"赤壁前夜（小）","y":208,"m":9,"months":12,"act":["xuchang","xiangyang","jiangling","jiangxia","changsha","jianye"],"xadj":[["xuchang","jianye"]],"bfx":{"jianye":{"xuchang":"s3d_goppi"},"xuchang":{"jianye":"s3d_goppi"}},"facs":[{"id":"caocao","n":"曹操","ruler":"caocao","cap":"xuchang","gold":600,"food":1000,"cities":["xuchang","xiangyang","jiangling"],"gens":[["caocao","xuchang"],["xunyu","xuchang"],["xuchu","xuchang"],["xiahoudun","xiangyang"],["yujin","xiangyang"],["caoren","jiangling"],["zhangliao","jiangling"]]},{"id":"liubei","n":"劉備","ruler":"liubei","cap":"jiangxia","gold":250,"food":500,"cities":["jiangxia","changsha"],"gens":[["liubei","jiangxia"],["guanyu","jiangxia"],["zhangfei","jiangxia"],["zhugeliang","jiangxia"],["zhaoyun","changsha"],["pangtong","changsha"]]},{"id":"sunquan","n":"孫権","ruler":"sunquan","cap":"jianye","gold":500,"food":900,"cities":["jianye"],"gens":[["sunquan","jianye"],["zhouyu","jianye"],["ganning","jianye"],["huanggai","jianye"],["lusu","jianye"]]}],"troops":{"xuchang":[8,3,2],"xiangyang":[6,2,1],"jiangling":[7,3,1],"jiangxia":[5,2,1],"changsha":[4,2,0],"jianye":[9,4,2]}}};
+const CQ_COL={"曹操":"#3a6fd8","劉備":"#2e9e5b","孫権":"#c8423a","孫策":"#c8423a","孫堅":"#c8423a","袁紹":"#c9a227","董卓":"#7b4bb3","劉璋":"#b07a3a","馬騰":"#3fb0b0","中立":"#5a5550"};
+/*CQ-DATA-END*/
+/*CQ-ENGINE-BEGIN*/
+/* ---- 陣取りの計算（画面・盤に触らない。node でも動く） ---- */
+var CQ_RNG=Math.random;
+const CQ_CITY={}; for(const c of CQ_CITIES)CQ_CITY[c.id]=c;
+const CQ_V={K:5,R:10,B:9,G:6,S:5,N:3,L:3,P:1};
+const CQ_PCN={K:'王',R:'飛',B:'角',G:'金',S:'銀',N:'桂',L:'香',P:'歩'};
+// 難しさ：対局のCPU(ms)・CPUの収入・攻撃性・自分の都市への攻撃の間隔(月)・1か月の攻撃回数
+const CQ_DIFF=[{n:'弱',ms:300,inc:0.8,ag:0.2,gap:3,na:1},{n:'普通',ms:500,inc:1.0,ag:0.3,gap:2,na:1},{n:'強',ms:1200,inc:1.1,ag:0.4,gap:1,na:1},{n:'最強',ms:2500,inc:1.2,ag:0.5,gap:1,na:1},{n:'鬼',ms:5000,inc:1.3,ag:0.6,gap:1,na:2}];
+const CQ_POL={agri:'農',comm:'商',barr:'兵舎',wall:'城壁',auto:'委任'};
+const CQ_TERR={plain:{l:'平地',mt:'plain',o:{forest:'normal',river:'normal'}},forest:{l:'森',mt:'plain',o:{forest:'dense',river:'sparse'}},river:{l:'川',mt:'plain',o:{forest:'sparse',river:'dense'}},mountain:{l:'山',mt:'mountain',o:'normal'},hill:{l:'丘陵',mt:'hill',o:'normal'},castle:{l:'城',mt:'siege',o:'normal'}};
+const CQ_SOLD=['P','L','N'];
+const CQ_K={defx:2,keep:0.4,thr:0.6};   // 守る側の兵の上乗せ・出陣で残す兵の割合・攻める判断の係数（仮）
+function cqGN(g){ return g==='_shu'?'守将':(CQ_GEN[g]?CQ_GEN[g].n:g); }
+function cqTr(g){ const d=CQ_GEN[g]; return d&&d.tr||null; }
+function cqHasTr(list,t){ return list.some(g=>cqTr(g)===t); }
+function cqSum(s){ return (s.P|0)+(s.L|0)+(s.N|0); }
+function cqZ(){ return {P:0,L:0,N:0}; }
+function cqNew(scId,me,diff){ const S=CQ_SC[scId]; const Q={v:1,sc:scId,y:S.y,m:S.m,turn:0,months:S.months,me:me,diff:diff,act:S.act.slice(),xadj:S.xadj,bfx:S.bfx,fac:{},city:{},gen:{},log:[],q:[],qa:[],phase:'me',pend:null,over:null,ev:[]};
+  for(const id of Q.act){ const c=CQ_CITY[id]; const t=S.troops[id]||[0,0,0]; Q.city[id]={o:'neutral',pop:c.pop,pmax:c.pop,agri:c.a,comm:c.c,barr:c.b,wall:c.w,dv:{agri:0,comm:0,barr:0,wall:0},pol:'auto',ap:'agri',P:t[0],L:t[1],N:t[2],rec:0,tr:[]}; }
+  for(const f of S.facs){ Q.fac[f.id]={n:f.n,ruler:f.ruler,cap:f.cap,gold:f.gold,food:f.food,alive:true,col:CQ_COL[f.n]||'#888',lp:-9};
+    for(const cid of f.cities)Q.city[cid].o=f.id; for(const [g,cid] of f.gens)Q.gen[g]={f:f.id,c:cid,st:'ok',done:false}; }
+  for(const f in Q.fac){ Q.fac[f].food+=cqIncFood(Q,f); }   // 9月＝収穫の月から始まる
+  for(const id of Q.act)Q.city[id].ap=cqAutoPol(Q,id);
+  return Q; }
+function cqAdj(Q,id){ const a=(CQ_CITY[id].adj||[]).filter(x=>Q.act.indexOf(x)>=0); for(const e of (Q.xadj||[])){ if(e[0]===id&&a.indexOf(e[1])<0)a.push(e[1]); if(e[1]===id&&a.indexOf(e[0])<0)a.push(e[0]); } return a; }
+function cqCities(Q,f){ return Q.act.filter(id=>Q.city[id].o===f); }
+function cqGensAt(Q,cid,f){ return Object.keys(Q.gen).filter(g=>{ const x=Q.gen[g]; return x.st==='ok'&&x.c===cid&&(f==null||x.f===f); }); }
+function cqFacGens(Q,f){ return Object.keys(Q.gen).filter(g=>Q.gen[g].f===f&&Q.gen[g].st==='ok'); }
+function cqCap(c){ return c.barr*6+6; }
+function cqTrainN(c,t){ return c.tr.filter(x=>!t||x[0]===t).length; }
+function cqCityCons(c){ return c.P+c.L+c.N*2+c.tr.length; }
+function cqCons(Q,f){ return cqCities(Q,f).reduce((a,id)=>a+cqCityCons(Q.city[id]),0); }
+function cqMul(Q,f){ return f===Q.me?1:CQ_DIFF[Q.diff].inc; }
+function cqIncGold(Q,f){ const F=Q.fac[f]; if(!F)return 0; let g=0; for(const id of cqCities(Q,f)){ const c=Q.city[id]; g+=c.pop*c.comm*0.6+5; } if(cqTr(F.ruler)==='名門')g*=1.2; return Math.round(g*cqMul(Q,f)); }
+function cqIncFood(Q,f){ let g=0; for(const id of cqCities(Q,f)){ const c=Q.city[id]; g+=c.pop*c.agri*4; } return Math.round(g*cqMul(Q,f)); }
+function cqCost(Q,f){ return cqFacGens(Q,f).length*3+cqCities(Q,f).length*5; }
+function cqNear(Q,f,from,excl){ // 自勢力の一番近い都市（隣り合いの数で数える）
+  const seen={}; seen[from]=1; let fr=[from];
+  while(fr.length){ const nx=[]; for(const a of fr){ for(const b of cqAdj(Q,a)){ if(seen[b])continue; seen[b]=1; if(Q.city[b].o===f&&b!==excl)return b; nx.push(b); } } fr=nx; }
+  const any=cqCities(Q,f).filter(x=>x!==excl); return any[0]||null; }
+function cqAdjOwn(Q,f,cid){ const a=cqAdj(Q,cid).filter(x=>Q.city[x].o===f&&x!==cid); if(!a.length)return null; a.sort((x,y)=>cqSum(Q.city[y])-cqSum(Q.city[x])); return a[0]; }
+function cqBorder(Q,cid){ const o=Q.city[cid].o; return cqAdj(Q,cid).some(x=>Q.city[x].o!==o); }
+// ---- 内政 ----
+function cqAutoPol(Q,cid){ const c=Q.city[cid], F=Q.fac[c.o]; if(!F)return 'agri';
+  const need=cqCons(Q,c.o)*12; if(F.food<need&&c.agri<5)return 'agri';
+  if(F.gold<100&&c.comm<5)return 'comm';
+  if(cqBorder(Q,cid)){ if(c.barr<5)return 'barr'; if(c.wall<3)return 'wall'; }
+  const o=[['agri',c.agri/5],['comm',c.comm/5],['barr',c.barr/5],['wall',c.wall/3]].filter(x=>x[1]<1); if(!o.length)return 'comm'; o.sort((a,b)=>a[1]-b[1]); return o[0][0]; }
+function cqStatFor(Q,cid,k){ const gs=cqGensAt(Q,cid,Q.city[cid].o); const key={agri:'p',comm:'c',barr:'b',wall:'t'}[k]; let v=30; for(const g of gs)v=Math.max(v,CQ_GEN[g][key]); return {v,ws:cqHasTr(gs,'王佐')}; }
+function cqDevGain(Q,cid,k){ const s=cqStatFor(Q,cid,k); return s.v/10*(s.ws?1.5:1); }
+function cqRecCost(Q,cid){ const t=cqTr(Q.fac[Q.city[cid].o].ruler); return t==='覇王'?7:t==='暴政'?5:10; }
+function cqCanRec(Q,cid){ const c=Q.city[cid], F=Q.fac[c.o]; if(!F)return 'x'; if(c.rec>=c.barr)return 'lim'; if(cqSum(c)+c.tr.length+c.rec>=cqCap(c))return 'cap'; if(F.gold<cqRecCost(Q,cid))return 'gold'; if(c.pop<1.2)return 'pop'; return null; }
+function cqRecruit(Q,cid){ if(cqCanRec(Q,cid))return false; const c=Q.city[cid], F=Q.fac[c.o]; F.gold-=cqRecCost(Q,cid); c.pop=Math.max(0,+(c.pop-(cqTr(F.ruler)==='暴政'?0.4:0.2)).toFixed(2)); c.rec++; return true; }
+const CQ_TC={L:8,N:15};
+function cqCanTrain(Q,cid,t){ const c=Q.city[cid], F=Q.fac[c.o]; if(!F)return 'x'; if(c.P<1)return 'p'; if(c.tr.length>=c.barr)return 'lim'; if(t==='N'&&c.barr<2)return 'barr'; if(F.gold<CQ_TC[t])return 'gold'; return null; }
+function cqTrain(Q,cid,t){ if(cqCanTrain(Q,cid,t))return false; const c=Q.city[cid], F=Q.fac[c.o]; c.P--; F.gold-=CQ_TC[t]; const kb=cqHasTr(cqGensAt(Q,cid,c.o),'騎兵'); c.tr.push([t,t==='L'?1:(kb?1:2)]); return true; }
+// ---- 合戦の準備 ----
+function cqCmd(gens){ if(!gens.length)return null; const r=gens.find(g=>CQ_GEN[g].r); if(r)return r; let b=gens[0]; for(const g of gens)if(CQ_GEN[g].t>CQ_GEN[b].t)b=g; return b; }
+function cqAtkCap(gens){ const cmd=cqCmd(gens); const t=cmd?CQ_GEN[cmd].t:60; return Math.floor(t/10)+(cqHasTr(gens,'神弓')?2:0)+(cqHasTr(gens,'騎兵')?1:0); }
+function cqBoard(Q,from,to){ const C=CQ_CITY[to]; const bx=(Q.bfx&&Q.bfx[to])||{}; const h=bx[from]||(C.bf&&(C.bf[from]||C.bf['*']))||null;
+  if(h&&CQ_HIST[h])return {mt:h,o:'normal',def:CQ_HIST[h].d,l:CQ_HIST[h].n,ter:C.t};
+  const T=CQ_TERR[C.t]||CQ_TERR.plain; return {mt:T.mt,o:T.o,def:(T.mt==='siege'?1:null),l:T.l,ter:C.t}; }
+function cqTerrMul(Q,cid){ const c=Q.city[cid], t=CQ_CITY[cid].t; if(t==='castle')return 1.3+c.wall*0.1; if(t==='mountain'||t==='river'||t==='hill'||t==='forest')return 1.1+c.wall*0.03; return 1+c.wall*0.03; }
+function cqDefSetup(Q,cid){ const c=Q.city[cid]; let gs=cqGensAt(Q,cid,c.o).sort((a,b)=>CQ_GEN[b].t-CQ_GEN[a].t);
+  const r=gs.find(g=>CQ_GEN[g].r); if(r)gs=[r].concat(gs.filter(g=>g!==r)); gs=gs.slice(0,5); const cmd=gs[0]||null;
+  const T=cmd?CQ_GEN[cmd].t:60; const cap=Math.floor(T/10)+c.wall+CQ_K.defx+(cqHasTr(gs,'守成')?1:0); const s=cqZ(); let left=cap;
+  for(const k of ['N','L','P']){ const n=Math.min(c[k],left); s[k]=n; left-=n; } return {gens:gs,cmd,sold:s,cap}; }
+function cqPower(gens,sold,cmd){ let v=gens.length?0:CQ_V.K; for(const g of gens)v+=(g===cmd?CQ_V.K:(CQ_V[CQ_GEN[g].pc]||5)); v+=sold.P*CQ_V.P+sold.L*CQ_V.L+sold.N*CQ_V.N; const t=cmd?CQ_GEN[cmd].t:60; return v*(1+t/200); }
+function cqFoodCost(sold,mo){ return (sold.P+sold.L+sold.N*2)*2*mo; }
+function cqLim(gens,mo){ return [100,160,220][mo-1]+(cqHasTr(gens,'補給')?60:0); }
+function cqMakeBattle(Q,from,to,gens,sold,mo){ const cmd=cqCmd(gens); gens=[cmd].concat(gens.filter(g=>g!==cmd));
+  return {atk:Q.city[from].o,def:Q.city[to].o,from,to,gens,cmd,sold:{P:sold.P|0,L:sold.L|0,N:sold.N|0},mo,lim:cqLim(gens,mo),bd:cqBoard(Q,from,to),dgens:[],dcmd:null,dsold:cqZ()}; }
+function cqLaunch(Q,B){ const c=Q.city[B.from], F=Q.fac[B.atk];
+  for(const k of CQ_SOLD){ B.sold[k]=Math.max(0,Math.min(B.sold[k],c[k])); c[k]-=B.sold[k]; }
+  F.food=Math.max(0,F.food-cqFoodCost(B.sold,B.mo));
+  for(const g of B.gens){ Q.gen[g].done=true; Q.gen[g].c='_b'; }
+  const d=cqDefSetup(Q,B.to); B.def=Q.city[B.to].o; B.dgens=d.gens; B.dcmd=d.cmd; B.dsold=d.sold; const t=Q.city[B.to];
+  for(const k of CQ_SOLD)t[k]-=B.dsold[k]; for(const g of B.dgens)Q.gen[g].c='_b';
+  B.bd=cqBoard(Q,B.from,B.to); Q.pend=B; return B; }
+function cqCancel(Q,B){ const c=Q.city[B.from], t=Q.city[B.to]; for(const k of CQ_SOLD){ c[k]+=B.sold[k]; t[k]+=B.dsold[k]; } for(const g of B.gens)Q.gen[g].c=B.from; for(const g of B.dgens)Q.gen[g].c=B.to; Q.pend=null; }
+// おまかせ合戦（計算で決着）
+function cqAutoOutcome(Q,B){ const R=CQ_RNG; const A=cqPower(B.gens,B.sold,B.cmd), D=cqPower(B.dgens,B.dsold,B.dcmd)*cqTerrMul(Q,B.to);
+  const win=R()<A*A/(A*A+D*D)?'atk':'def';
+  const fight=(sold,isW)=>{ const lr=isW?0.2+R()*0.2:0.5+R()*0.3; const sv=cqZ(), lo=cqZ(); for(const k of CQ_SOLD)for(let i=0;i<sold[k];i++){ if(R()>=lr)sv[k]++; else lo[k]++; } return {sv,lo}; };
+  const a=fight(B.sold,win==='atk'), d=fight(B.dsold,win==='def');
+  const held=(lo)=>{ const h=cqZ(); for(const k of CQ_SOLD)for(let i=0;i<lo[k];i++)if(R()<0.5)h[k]++; return h; };
+  const gs=(gens,cmd,isW)=>{ const own=[],hel=[]; for(const g of gens){ if(!isW&&g!==cmd&&R()<0.35)hel.push(g); else own.push(g); } return {own,hel}; };
+  const ag=gs(B.gens,B.cmd,win==='atk'), dg=gs(B.dgens,B.dcmd,win==='def');
+  return {win,retreat:false,auto:true,atk:{gensOwn:ag.own,gensHeld:ag.hel,sold:a.sv,capt:win==='atk'?held(d.lo):cqZ()},def:{gensOwn:dg.own,gensHeld:dg.hel,sold:d.sv,capt:win==='def'?held(a.lo):cqZ()}}; }
+// ---- 合戦の結果を地図へ返す ----
+function cqAdd(c,s){ c.P+=s.P|0; c.L+=s.L|0; c.N+=s.N|0; }
+function cqConv(Q,f,s){ const F=Q.fac[f]; if(F&&cqTr(F.ruler)==='仁徳')return {P:s.P,L:s.L,N:s.N}; return {P:cqSum(s),L:0,N:0}; }   // 降兵は歩（仁徳なら兵種のまま）
+function cqRelease(Q,g){ const G=Q.gen[g]; const F=G.f&&Q.fac[G.f]; const to=(F&&F.alive)?cqNear(Q,G.f,G.c):null; G.by=null; G.tries=0; if(to){ G.st='ok'; G.c=to; } else { G.st='free'; G.f=null; } }
+function cqCapture(Q,g,by,cid,res,home,tryEsc){ const G=Q.gen[g], d=CQ_GEN[g];
+  if(tryEsc&&home&&(d.tr==='猛将'||CQ_RNG()<Math.max(0,(d.b-40)/100))){ G.st='ok'; G.c=home; res.esc.push(g); return; }
+  G.st='cap'; G.by=by; G.c=cid; G.tries=0; G.tm=-1; res.cap.push(g); }
+function cqApply(Q,B,out){ const res={win:out.win,taken:false,cap:[],esc:[],surr:0,lostA:cqSum(B.sold)-cqSum(out.atk.sold),lostD:cqSum(B.dsold)-cqSum(out.def.sold),retreat:!!out.retreat,atk:B.atk,def:B.def,from:B.from,to:B.to,auto:!!out.auto,dead:null};
+  const A=B.atk, D=B.def, T=Q.city[B.to];
+  if(out.win==='atk'){
+    const flee=(D!=='neutral'&&Q.fac[D])?(cqAdjOwn(Q,D,B.to)||cqNear(Q,D,B.to,B.to)):null;
+    T.o=A; T.tr=[]; T.rec=0; T.pol='auto';
+    const rest={P:T.P,L:T.L,N:T.N}; T.P=T.L=T.N=0;
+    if(flee)cqAdd(Q.city[flee],rest); else { const h={P:rest.P>>1,L:rest.L>>1,N:rest.N>>1}; cqAdd(T,cqConv(Q,A,h)); res.surr+=cqSum(h); }
+    for(const g of Object.keys(Q.gen)){ const G=Q.gen[g]; if(G.st==='ok'&&G.c===B.to&&G.f===D){ if(flee)G.c=flee; else cqCapture(Q,g,A,B.to,res,null,false); } }
+    const su={P:out.def.sold.P>>1,L:out.def.sold.L>>1,N:out.def.sold.N>>1}; cqAdd(T,cqConv(Q,A,su)); res.surr+=cqSum(su);
+    cqAdd(T,out.atk.sold); cqAdd(T,cqConv(Q,A,out.atk.capt)); res.surr+=cqSum(out.atk.capt);
+    for(const g of out.atk.gensOwn.concat(out.atk.gensHeld)){ Q.gen[g].st='ok'; Q.gen[g].c=B.to; }
+    for(const g of out.def.gensOwn){ if(flee){ Q.gen[g].c=flee; Q.gen[g].st='ok'; } else cqCapture(Q,g,A,B.to,res,null,false); }
+    for(const g of out.def.gensHeld)cqCapture(Q,g,A,B.to,res,flee,true);
+    for(const g of Object.keys(Q.gen)){ const G=Q.gen[g]; if(G.st==='cap'&&G.c===B.to&&G.by===D){ if(G.f===A){ G.st='ok'; G.by=null; } else cqRelease(Q,g); } }   // 相手が捕まえていた捕虜は解放
+    res.taken=true;
+    if(D!=='neutral'&&Q.fac[D]&&!cqCities(Q,D).length){ Q.fac[D].alive=false; res.dead=D;
+      for(const g of Object.keys(Q.gen)){ const G=Q.gen[g]; if(G.f===D&&G.st==='ok'){ G.st='free'; G.f=null; } } }
+  } else {
+    const home=(Q.city[B.from].o===A)?B.from:cqNear(Q,A,B.from);
+    const ret=out.retreat?out.atk.sold:{P:Math.ceil(out.atk.sold.P/2),L:Math.ceil(out.atk.sold.L/2),N:Math.ceil(out.atk.sold.N/2)};
+    if(home)cqAdd(Q.city[home],ret);
+    for(const g of out.atk.gensOwn){ if(home){ Q.gen[g].c=home; Q.gen[g].st='ok'; } else cqCapture(Q,g,D,B.to,res,null,false); }
+    for(const g of out.atk.gensHeld)cqCapture(Q,g,D,B.to,res,home,true);
+    cqAdd(T,out.def.sold); cqAdd(T,cqConv(Q,D,out.def.capt)); res.surr+=cqSum(out.def.capt);
+    for(const g of out.def.gensOwn.concat(out.def.gensHeld)){ Q.gen[g].c=B.to; Q.gen[g].st='ok'; }
+  }
+  for(const g of B.gens.concat(B.dgens)){ if(Q.gen[g].c==='_b'){ Q.gen[g].c=(Q.city[B.to].o===Q.gen[g].f)?B.to:(cqNear(Q,Q.gen[g].f,B.to)||B.to); } }   // 念のため
+  Q.pend=null; Q.ev.push({k:'b',a:A,d:D,f:B.from,t:B.to,w:out.win,r:res.retreat});
+  cqCheckOver(Q); return res; }
+// ---- 登用・解放 ----
+function cqRecChance(Q,g,by){ const G=Q.gen[g]; let p=0.4; if(!G.f||!Q.fac[G.f]||!Q.fac[G.f].alive)p+=0.3; if(cqTr(Q.fac[by].ruler)==='仁徳')p+=0.2; return Math.min(0.95,p); }
+function cqCanTry(Q,g){ const G=Q.gen[g]; return !CQ_GEN[g].r&&G.tm!==Q.turn; }
+function cqTryRecruit(Q,g,by){ const G=Q.gen[g]; if(!cqCanTry(Q,g))return null; G.tm=Q.turn; const p=cqRecChance(Q,g,by);
+  if(CQ_RNG()<p){ G.f=by; G.st='ok'; G.by=null; G.done=true; G.tries=0; return true; }
+  G.tries=(G.tries||0)+1; if(G.st==='cap'&&G.tries>=2)cqRelease(Q,g); return false; }
+// ---- 月末 ----
+function cqToSept(Q){ let n=0, m=Q.m; do{ m=m%12+1; n++; }while(m!==9); return n; }
+function cqMonthEnd(Q){ const ev=Q.ev; const facs=Object.keys(Q.fac).filter(f=>Q.fac[f].alive);
+  for(const f of facs){ const F=Q.fac[f]; F.food-=cqCons(Q,f); if(F.food<0){ F.food=0; let n=0; for(const id of cqCities(Q,f)){ const c=Q.city[id]; const k=c.P>0?Math.max(1,Math.floor(c.P*0.1)):0; c.P-=k; n+=k; } if(n)ev.push({k:'desert',f,n}); }
+    F.gold-=cqCost(Q,f); if(F.gold<0)F.gold=0; }
+  Q.m++; if(Q.m>12){ Q.m=1; Q.y++; } Q.turn++;
+  for(const f of facs){ const F=Q.fac[f]; const g=cqIncGold(Q,f); F.gold+=g; let fd=0; if(Q.m===9){ fd=cqIncFood(Q,f); F.food+=fd; } if(f===Q.me)ev.push({k:'inc',g,fd}); }
+  for(const id of Q.act){ const c=Q.city[id]; c.P+=c.rec; c.rec=0; const keep=[]; for(const t of c.tr){ t[1]--; if(t[1]<=0)c[t[0]]++; else keep.push(t); } c.tr=keep;
+    if(Q.fac[c.o]){ let k=c.pol==='auto'?cqAutoPol(Q,id):c.pol; const mx=k==='wall'?3:5; if(c[k]>=mx){ k=cqAutoPol(Q,id); } c.ap=k; const mx2=k==='wall'?3:5;
+      if(c[k]<mx2){ c.dv[k]+=cqDevGain(Q,id,k); if(c.dv[k]>=100){ c.dv[k]-=100; c[k]++; if(c.o===Q.me)ev.push({k:'lv',c:id,p:k,v:c[k]}); } } }
+    c.pop=Math.min(c.pmax,+(c.pop+c.agri*0.1).toFixed(2)); }
+  for(const g of Object.keys(Q.gen)){ const G=Q.gen[g]; G.done=false;
+    if(G.st==='cap'){ if(CQ_GEN[g].r||!Q.fac[G.by]||!Q.fac[G.by].alive){ cqRelease(Q,g); continue; }
+      if(G.by!==Q.me){ cqTryRecruit(Q,g,G.by); } else if((G.tries||0)>=2)cqRelease(Q,g); }
+    else if(G.st==='free'){ const o=Q.city[G.c]&&Q.city[G.c].o; if(o&&Q.fac[o]&&o!==Q.me)cqTryRecruit(Q,g,o); } }
+  cqCheckOver(Q); }
+function cqScore(Q,f){ let s=0; for(const id of cqCities(Q,f))s+=100+cqSum(Q.city[id]); return s; }
+function cqCheckOver(Q){ if(Q.over)return Q.over; const mine=cqCities(Q,Q.me).length;
+  if(Q.sim){ if(Q.turn>=Q.months)Q.over={k:'time'}; } else if(!mine)Q.over={k:'lose'}; else if(mine===Q.act.length)Q.over={k:'win'}; else if(Q.turn>=Q.months)Q.over={k:'time'};
+  if(Q.over){ const r=Object.keys(Q.fac).map(f=>({f,s:cqScore(Q,f),c:cqCities(Q,f).length})).sort((a,b)=>b.s-a.s); Q.over.rank=r; }
+  return Q.over; }
+// ---- CPUの勢力 ----
+function cqCpuInternal(Q,f){ const F=Q.fac[f]; const cs=cqCities(Q,f);
+  const need=cqCons(Q,f)*Math.min(Math.max(1,Q.months-Q.turn),cqToSept(Q))*1.2;
+  if(F.food>=need){ const ord=cs.slice().sort((a,b)=>(cqBorder(Q,b)-cqBorder(Q,a))||(cqSum(Q.city[a])-cqSum(Q.city[b])));
+    for(const id of ord){ let k=0; while(k++<6&&F.gold>=cqRecCost(Q,id)+30&&!cqCanRec(Q,id))cqRecruit(Q,id); } }
+  for(const id of cs){ const c=Q.city[id]; let k=0; while(k++<5&&c.P>=3){ const tot=c.P+c.L+c.N+c.tr.length; const cL=c.L+cqTrainN(c,'L'), cN=c.N+cqTrainN(c,'N'); let t=null;
+      if(cN<tot*0.2&&!cqCanTrain(Q,id,'N'))t='N'; else if(cL<tot*0.3&&!cqCanTrain(Q,id,'L'))t='L'; if(!t||F.gold<30+CQ_TC[t])break; cqTrain(Q,id,t); } }
+  if(Q.turn%3===2){ for(const id of cs){ if(cqBorder(Q,id))continue; const to=cqAdj(Q,id).filter(x=>Q.city[x].o===f&&cqBorder(Q,x))[0]; if(!to)continue;
+      const c=Q.city[id], t=Q.city[to]; for(const k of CQ_SOLD){ const n=c[k]>>1; c[k]-=n; t[k]+=n; } const gs=cqGensAt(Q,id,f); for(const g of gs.slice(1))Q.gen[g].c=to; } } }
+function cqPickArmy(Q,cid,f){ let gs=cqGensAt(Q,cid,f).filter(g=>!Q.gen[g].done); if(!gs.length)return null;
+  gs.sort((a,b)=>(CQ_V[CQ_GEN[b].pc]||5)-(CQ_V[CQ_GEN[a].pc]||5)||CQ_GEN[b].t-CQ_GEN[a].t);
+  const all=cqGensAt(Q,cid,f).length; const n=Math.min(5,all>=3?all-1:all); gs=gs.slice(0,n);
+  const c=Q.city[cid]; const cap=cqAtkCap(gs); const tot=cqSum(c); let room=Math.min(cap,tot-Math.ceil(tot*CQ_K.keep)); const s=cqZ();
+  for(const k of ['N','L','P']){ const m=Math.min(c[k],room); s[k]=m; room-=m; } return {gens:gs,sold:s}; }
+function cqCanHitMe(Q,f){ const D=CQ_DIFF[Q.diff]; const F=Q.fac[f]; const hits=(Q.hitMe||0); return Q.turn-F.lp>=D.gap&&hits<(D.na>1?2:1); }
+function cqCpuPlan(Q,f){ const D=CQ_DIFF[Q.diff]; const F=Q.fac[f]; const plans=[]; const used={};
+  for(const id of cqCities(Q,f)){ if(plans.length>=D.na)break; const ar=cqPickArmy(Q,id,f); if(!ar||cqSum(ar.sold)<3)continue; if(ar.gens.some(g=>used[g]))continue;
+    const cmd=cqCmd(ar.gens); const A=cqPower(ar.gens,ar.sold,cmd); let best=null;
+    for(const t of cqAdj(Q,id)){ const o=Q.city[t].o; if(o===f)continue; if(o===Q.me&&!cqCanHitMe(Q,f))continue;
+      const d=cqDefSetup(Q,t); const Dp=cqPower(d.gens,d.sold,d.cmd)*cqTerrMul(Q,t); if(A*(CQ_K.thr+D.ag)<=Dp)continue; if(!best||Dp<best.Dp)best={t,Dp}; }
+    if(!best)continue; const mo=CQ_CITY[best.t].t==='castle'?3:2; if(F.food<cqFoodCost(ar.sold,mo)+cqCons(Q,f)*2)continue;
+    for(const g of ar.gens)used[g]=1; plans.push({from:id,to:best.t,gens:ar.gens,sold:ar.sold,mo}); }
+  return plans; }
+// 計画した出陣を今の状態で確かめて合戦を作る（だめなら null）
+function cqPlanToBattle(Q,f,p){ if(Q.city[p.from].o!==f||Q.city[p.to].o===f)return null; const gs=p.gens.filter(g=>Q.gen[g].st==='ok'&&Q.gen[g].f===f&&Q.gen[g].c===p.from&&!Q.gen[g].done); if(!gs.length)return null;
+  if(Q.city[p.to].o===Q.me&&!cqCanHitMe(Q,f))return null; const B=cqMakeBattle(Q,p.from,p.to,gs,p.sold,p.mo); return B; }
+// 月を進める：CPUの順番を作る
+function cqStartCpu(Q){ Q.phase='cpu'; Q.hitMe=0; Q.ev=[]; const fs=Object.keys(Q.fac).filter(f=>Q.fac[f].alive&&f!==Q.me); for(let i=fs.length-1;i>0;i--){ const j=Math.floor(CQ_RNG()*(i+1)); const t=fs[i]; fs[i]=fs[j]; fs[j]=t; } Q.q=fs; Q.qa=[]; Q.cur=null; }
+// 次の合戦を返す（自分が守る合戦なら {B,mine:true}）。CPUどうしはここで計算して決める。全部終われば月末まで進めて null
+function cqStep(Q){ let guard=0;
+  while(guard++<200){ if(Q.over){ Q.phase='me'; return null; }
+    if(Q.qa.length){ const p=Q.qa.shift(); const f=Q.cur; if(!Q.fac[f]||!Q.fac[f].alive)continue; const B=cqPlanToBattle(Q,f,p); if(!B)continue;
+      cqLaunch(Q,B); if(B.def===Q.me){ Q.fac[f].lp=Q.turn; Q.hitMe=(Q.hitMe||0)+1; return {B,mine:true}; }
+      cqApply(Q,B,cqAutoOutcome(Q,B)); continue; }
+    if(Q.q.length){ const f=Q.q.shift(); if(!Q.fac[f]||!Q.fac[f].alive)continue; Q.cur=f; cqCpuInternal(Q,f); Q.qa=cqCpuPlan(Q,f); continue; }
+    cqMonthEnd(Q); Q.phase='me'; Q.cur=null; return null; }
+  Q.phase='me'; return null; }
+/*CQ-ENGINE-END*/
+/* ---- 陣取りの画面と、対局とのつなぎ ---- */
+const CQ_KEY='tshogi_conquest';
+let CQ=null, CQB=null, CQ_SV=null, cqUIOpen=false, cqSel=null, cqMode=null, cqS=null, cqInfo=null;
+const $cq=(id)=>document.getElementById(id);
+function cqSave(){ if(!CQ)return; try{ localStorage.setItem(CQ_KEY,JSON.stringify(CQ)); }catch(e){} try{ cloudSoon(8000); }catch(e){} }
+function cqLoad(){ try{ const d=JSON.parse(localStorage.getItem(CQ_KEY)||'null'); if(d&&d.v===1&&d.city&&d.fac)return d; }catch(e){} return null; }
+function cqE(tag,cls,txt){ const e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
+function cqBtn(p,txt,fn,cls,dis){ const b=cqE('button','btn'+(cls?' '+cls:''),txt); b.onclick=fn; if(dis)b.disabled=true; p.appendChild(b); return b; }
+function cqFacChip(f){ const F=CQ.fac[f]; const s=cqE('span','cqfac',F?F.n:'中立'); s.style.background=F?F.col:CQ_COL['中立']; return s; }
+function cqDate(){ return CQ.y+'年'+CQ.m+'月'; }
+// ---- 開く・閉じる ----
+function cqOpen(){ if(CQB){ $cq('title').style.display='none'; return; } $cq('title').style.display='none'; if(!CQ)CQ=cqLoad();
+  $cq('cq').classList.add('on'); cqUIOpen=true; cqSheetClose(); cqModalClose();
+  if(!CQ){ cqStartScreen(); cqRender(); return; }
+  cqRender();
+  if(CQ.pend){ cqResumeModal(); return; }
+  if(CQ.phase==='cpu'){ cqProcess(); return; }
+  if(CQ.over)cqOverModal(); }
+function cqClose(){ $cq('cq').classList.remove('on'); cqUIOpen=false; }
+// ---- 地図 ----
+function cqRender(){ const top=$cq('cqTop'); if(!CQ){ $cq('cqDate').textContent='陣取り'; $cq('cqGold').textContent='-'; $cq('cqFood').textContent='-'; $cq('cqNext').disabled=true; }
+  else { const F=CQ.fac[CQ.me]; $cq('cqDate').textContent=cqDate(); $cq('cqGold').textContent=F.gold; $cq('cqFood').textContent=F.food; $cq('cqLeft').textContent='残り'+Math.max(0,CQ.months-CQ.turn); $cq('cqNext').disabled=!!(CQ.over||CQ.pend||CQ.phase==='cpu'); }
+  cqMap(); }
+const cqFY=(y)=>y<40?(y-5)*0.55:19.25+(y-40);   // 北(まだ行けない所)は縦を詰め、南を広く
+function cqBox(act,focus){ if(!focus)return {x0:6,x1:92,y0:0,y1:cqFY(89),pad:30}; const xs=act.map(id=>CQ_CITY[id].x), ys=act.map(id=>cqFY(CQ_CITY[id].y)); return {x0:Math.min(...xs)-7,x1:Math.max(...xs)+7,y0:Math.min(...ys)-6,y1:Math.max(...ys)+6,pad:24}; }
+function cqMap(){ const box=$cq('cqMap'), svg=$cq('cqSvg'), nodes=$cq('cqNodes'); const W=box.clientWidth||360, H=box.clientHeight||500; nodes.innerHTML='';
+  const act=CQ?CQ.act:CQ_SC.mvp.act; const focus=$cq('cqSheet').style.display==='block'; const bx=cqBox(act,focus);
+  const cqXY=(c)=>[bx.pad+(c.x-bx.x0)/(bx.x1-bx.x0)*(W-2*bx.pad), bx.pad+(cqFY(c.y)-bx.y0)/(bx.y1-bx.y0)*(H-2*bx.pad)];
+  const pos={}; for(const c of CQ_CITIES)pos[c.id]=cqXY(c);
+  let s='<defs><radialGradient id="cqg"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>';
+  const P=(pts)=>pts.map(p=>{ const q=cqXY({x:p[0],y:p[1]}); return q[0].toFixed(1)+','+q[1].toFixed(1); }).join(' ');
+  s+='<polyline points="'+P([[18,27],[34,31],[46,33],[57,30],[66,29],[76,30],[92,26]])+'" fill="none" stroke="#5f7fa6" stroke-opacity=".38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
+  s+='<polyline points="'+P([[4,63],[18,64],[30,63],[40,71],[50,78],[62,77],[73,67],[84,64],[96,60]])+'" fill="none" stroke="#5f7fa6" stroke-opacity=".45" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>';
+  const done={}; for(const c of CQ_CITIES)for(const b of c.adj){ const k=[c.id,b].sort().join('|'); if(done[k])continue; done[k]=1; const a1=act.indexOf(c.id)>=0, a2=act.indexOf(b)>=0; const p=pos[c.id], q=pos[b]; if(!q)continue;
+    s+='<line x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="'+(a1&&a2?'#d8b461':'#5a4a34')+'" stroke-opacity="'+(a1&&a2?.55:.35)+'" stroke-width="'+(a1&&a2?2:1)+'"/>'; }
+  for(const e of (CQ?CQ.xadj:CQ_SC.mvp.xadj)){ const p=pos[e[0]], q=pos[e[1]]; s+='<line x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#d8b461" stroke-opacity=".55" stroke-width="2" stroke-dasharray="6 5"/>'; }
+  if(CQ)for(const id of act){ const o=CQ.city[id].o, F=CQ.fac[o]; const p=pos[id]; s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+Math.min(58,W/7).toFixed(0)+'" fill="'+(F?F.col:CQ_COL['中立'])+'" fill-opacity=".16"/>'; }
+  svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML=s;
+  const tg=(cqMode==='sortie'||cqMode==='move')&&cqS?cqTargets():[];
+  for(const c of CQ_CITIES){ const p=pos[c.id]; const on=act.indexOf(c.id)>=0; const n=cqE('div','cqn'); n.style.left=p[0]+'px'; n.style.top=p[1]+'px';
+    if(!on||!CQ){ n.className='cqn lock'; n.appendChild(cqE('span','nm',c.n)); if(on&&!CQ){ const f=CQ_SC.mvp.facs.find(x=>x.cities.indexOf(c.id)>=0); if(f){ n.className='cqn'; n.style.background=CQ_COL[f.n]; } } nodes.appendChild(n); continue; }
+    const C=CQ.city[c.id], F=CQ.fac[C.o]; n.style.background=F?F.col:CQ_COL['中立']; if(C.o===CQ.me)n.classList.add('me'); if(cqSel===c.id)n.classList.add('sel'); if(tg.indexOf(c.id)>=0)n.classList.add('tgt'); if(cqS&&cqS.to===c.id)n.classList.add('sel');
+    if(c.t==='castle')n.classList.add('cas');
+    n.appendChild(cqE('span','nm',c.n)); n.appendChild(cqE('span','t',String(cqSum(C)))); n.onclick=()=>cqTap(c.id); nodes.appendChild(n); } }
+function cqTap(id){ if(!CQ||CQ.phase==='cpu'||CQ.pend)return; if((cqMode==='sortie'||cqMode==='move')&&cqS){ if(cqTargets().indexOf(id)>=0){ cqS.to=id; cqSheet(); cqMap(); } return; } cqSel=id; cqMode='city'; cqSheet(); cqMap(); }
+// ---- 下から出るシート ----
+function cqSheetClose(){ const s=$cq('cqSheet'); s.style.display='none'; s.innerHTML=''; cqMode=null; cqS=null; cqSel=null; cqInfo=null; if(cqUIOpen)cqMap(); }
+function cqSheet(){ const sh=$cq('cqSheet'); sh.innerHTML=''; sh.style.display='block'; if(cqMode==='city')cqSheetCity(sh); else if(cqMode==='sortie'||cqMode==='move')cqSheetSortie(sh); else if(cqMode==='facs')cqSheetFacs(sh); else sh.style.display='none'; cqMap(); }
+function cqRow(p,label){ const r=cqE('div','cqrow'); if(label!=null)r.appendChild(cqE('span','cqk',label)); p.appendChild(r); return r; }
+function cqGenChip(p,g,on,fn,star){ const d=CQ_GEN[g]; const b=cqE('span','cqgen'+(on?' on':'')+(CQ.gen[g]&&CQ.gen[g].done?' done':'')); if(star)b.appendChild(cqE('b',null,'★')); b.appendChild(document.createTextNode(d.n)); b.appendChild(cqE('i',null,CQ_PCN[(d.r||star)?'K':d.pc])); if(fn)b.onclick=fn; p.appendChild(b); return b; }
+function cqSoldTxt(s){ return '歩'+s.P+' 香'+s.L+' 桂'+s.N; }
+function cqSheetCity(sh){ const id=cqSel, C=CQ.city[id], S=CQ_CITY[id], mine=C.o===CQ.me;
+  const h=cqRow(sh); h.appendChild(cqE('span','cqh',S.n)); h.appendChild(cqFacChip(C.o)); h.appendChild(cqE('span','cqv','人口'+C.pop.toFixed(1)));
+  const x=cqE('span','cqx','✕'); x.onclick=()=>{ cqSheetClose(); cqMap(); }; h.appendChild(x);
+  const lv=cqRow(sh); for(const [k,l] of [['agri','農'],['comm','商'],['barr','兵舎'],['wall','城壁']]){ const t=cqE('span','cqlv',l+' '+C[k]); if(mine){ const g=cqE('i'); g.style.width=Math.min(100,C.dv[k])+'%'; t.appendChild(g); } lv.appendChild(t); }
+  lv.appendChild(cqE('span','cqv',(CQ_TERR[S.t]||{}).l||''));
+  if(mine){ const pr=cqRow(sh,'方針'); for(const k of ['agri','comm','barr','wall','auto']){ cqBtn(pr,CQ_POL[k]+(k==='auto'&&C.pol==='auto'?'（'+CQ_POL[C.ap]+'）':''),()=>{ C.pol=k; cqSave(); cqSheet(); },C.pol===k?'on':''); } }
+  const sr=cqRow(sh,'兵'); sr.appendChild(cqE('span','cqnum',cqSoldTxt(C))); if(mine){ sr.appendChild(cqE('span','cqv',(cqSum(C)+C.tr.length+C.rec)+'/'+cqCap(C))); if(C.rec)sr.appendChild(cqE('span','cqv','+歩'+C.rec)); for(const t of C.tr)sr.appendChild(cqE('span','cqv',CQ_PCN[t[0]]+'('+t[1]+')')); }
+  if(mine){ const rr=cqRow(sh,''); const rc=cqRecCost(CQ,id);
+    cqBtn(rr,'徴兵+1  金'+rc,()=>{ if(cqRecruit(CQ,id)){ cqSave(); cqRender(); cqSheet(); } },'',!!cqCanRec(CQ,id));
+    cqBtn(rr,'最大',()=>{ let n=0; while(n<20&&cqRecruit(CQ,id))n++; cqSave(); cqRender(); cqSheet(); },'',!!cqCanRec(CQ,id));
+    cqBtn(rr,'香に訓練  金8',()=>{ if(cqTrain(CQ,id,'L')){ cqSave(); cqRender(); cqSheet(); } },'',!!cqCanTrain(CQ,id,'L'));
+    cqBtn(rr,'桂に訓練  金15',()=>{ if(cqTrain(CQ,id,'N')){ cqSave(); cqRender(); cqSheet(); } },'',!!cqCanTrain(CQ,id,'N')); }
+  const gs=Object.keys(CQ.gen).filter(g=>CQ.gen[g].c===id&&CQ.gen[g].st==='ok');
+  const gr=cqRow(sh,'武将'); if(!gs.length)gr.appendChild(cqE('span','cqv','守将')); for(const g of gs)cqGenChip(gr,g,cqInfo===g,()=>{ cqInfo=cqInfo===g?null:g; cqSheet(); });
+  if(cqInfo&&gs.indexOf(cqInfo)>=0){ const d=CQ_GEN[cqInfo]; const ir=cqRow(sh,''); ir.appendChild(cqE('span','cqnum',d.n+'  武'+d.b+' 統'+d.t+' 知'+d.c+' 政'+d.p)); if(d.tr)ir.appendChild(cqE('span','cqtr',d.tr)); }
+  const cap=Object.keys(CQ.gen).filter(g=>CQ.gen[g].c===id&&(CQ.gen[g].st==='cap'||CQ.gen[g].st==='free'));
+  if(cap.length){ const cr=cqRow(sh,'捕虜'); for(const g of cap){ const G=CQ.gen[g]; const w=cqE('span','cqcap'); cqGenChip(w,g,false,null); if(mine&&(G.st==='free'||G.by===CQ.me)){ const p=Math.round(cqRecChance(CQ,g,CQ.me)*100);
+        if(!CQ_GEN[g].r)cqBtn(w,'登用 '+p+'%',()=>{ const r=cqTryRecruit(CQ,g,CQ.me); cqToast(r?'登用':'×'); cqSave(); cqSheet(); cqMap(); },'',!cqCanTry(CQ,g));
+        if(G.st==='cap')cqBtn(w,'解放',()=>{ cqRelease(CQ,g); cqSave(); cqSheet(); cqMap(); }); } cr.appendChild(w); } }
+  if(mine){ const ar=cqRow(sh,''); const free=gs.filter(g=>!CQ.gen[g].done); const tg=cqAdj(CQ,id).filter(t=>CQ.city[t].o!==CQ.me); const own=cqAdj(CQ,id).filter(t=>CQ.city[t].o===CQ.me);
+    cqBtn(ar,'出陣',()=>cqSortie(id,tg[0]||null,'sortie'),'go',!free.length||!tg.length); cqBtn(ar,'移動',()=>cqSortie(id,own[0]||null,'move'),'',!free.length&&!cqSum(C)||!own.length); }
+  else { const fr=cqAdj(CQ,id).filter(t=>CQ.city[t].o===CQ.me&&cqGensAt(CQ,t,CQ.me).some(g=>!CQ.gen[g].done)); if(fr.length){ const ar=cqRow(sh,'出陣'); for(const f of fr)cqBtn(ar,CQ_CITY[f].n+' →',()=>cqSortie(f,id,'sortie'),'go'); } } }
+// ---- 出陣・移動 ----
+function cqTargets(){ if(!cqS)return []; const a=cqAdj(CQ,cqS.from); return cqS.mode==='move'?a.filter(t=>CQ.city[t].o===CQ.me):a.filter(t=>CQ.city[t].o!==CQ.me); }
+function cqSortie(from,to,mode){ const gs=cqGensAt(CQ,from,CQ.me).filter(g=>!CQ.gen[g].done); let sel=[];
+  if(mode==='sortie'){ const r=gs.filter(g=>CQ_GEN[g].r); sel=r.concat(gs.filter(g=>!CQ_GEN[g].r).sort((a,b)=>(CQ_V[CQ_GEN[b].pc]||5)-(CQ_V[CQ_GEN[a].pc]||5)||CQ_GEN[b].t-CQ_GEN[a].t)).slice(0,5); }   // 君主がいれば総大将に
+  cqS={from,to,mode,gens:sel,sold:cqZ(),mo:2}; cqMode=mode; cqSel=null; if(mode==='sortie'){ cqFill(); if(to&&CQ_CITY[to].t==='castle')cqS.mo=3; while(cqS.mo>1&&CQ.fac[CQ.me].food<cqFoodCost(cqS.sold,cqS.mo))cqS.mo--; } cqSheet(); cqMap(); }
+function cqFill(){ const c=CQ.city[cqS.from]; const cap=cqAtkCap(cqS.gens); let room=cap; const s=cqZ(); for(const k of ['N','L','P']){ const n=Math.min(c[k],room); s[k]=n; room-=n; } cqS.sold=s; }
+function cqSheetSortie(sh){ const S=cqS, c=CQ.city[S.from], mv=S.mode==='move';
+  const h=cqRow(sh); h.appendChild(cqE('span','cqh',mv?'移動':'出陣')); h.appendChild(cqE('span','cqv',CQ_CITY[S.from].n+' →')); const x=cqE('span','cqx','✕'); x.onclick=()=>{ const f=S.from; cqSheetClose(); cqSel=f; cqMode='city'; cqSheet(); cqMap(); }; h.appendChild(x);
+  const tr=cqRow(sh,mv?'行き先':'攻め先'); for(const t of cqTargets()){ const b=cqBtn(tr,CQ_CITY[t].n,()=>{ S.to=t; if(!mv&&CQ_CITY[t].t==='castle'&&CQ.fac[CQ.me].food>=cqFoodCost(S.sold,3))S.mo=3; cqSheet(); cqMap(); },S.to===t?'on':''); if(!mv){ const F=CQ.fac[CQ.city[t].o]; b.style.borderColor=F?F.col:'#777'; } }
+  if(!mv&&S.to){ const d=cqDefSetup(CQ,S.to), bd=cqBoard(CQ,S.from,S.to); const r=cqRow(sh,'相手'); r.appendChild(cqFacChip(CQ.city[S.to].o)); if(!d.gens.length)r.appendChild(cqE('span','cqv','守将')); for(const g of d.gens)cqGenChip(r,g,false,null,g===d.cmd);
+    const r2=cqRow(sh,''); r2.appendChild(cqE('span','cqnum',cqSoldTxt(d.sold))); r2.appendChild(cqE('span','cqtr',bd.l)); }
+  const gs=cqGensAt(CQ,S.from,CQ.me).filter(g=>!CQ.gen[g].done); const cmd=cqCmd(S.gens);
+  const gr=cqRow(sh,'武将'); for(const g of gs){ cqGenChip(gr,g,S.gens.indexOf(g)>=0,()=>{ const i=S.gens.indexOf(g); if(i>=0)S.gens.splice(i,1); else if(mv||S.gens.length<5)S.gens.push(g); if(!mv)cqClamp(); cqSheet(); },!mv&&g===cmd); }
+  if(!mv)gr.appendChild(cqE('span','cqv',S.gens.length+'/5'));
+  const cap=mv?Infinity:cqAtkCap(S.gens); const sr=cqRow(sh,'兵 '+cqSum(S.sold)+'/'+(mv?cqSum(c):cap));
+  for(const k of ['P','L','N']){ const w=cqE('span','cqpm'); w.appendChild(cqE('b',null,CQ_PCN[k])); const m=cqE('button',null,'－'); m.onclick=()=>{ if(S.sold[k]>0){ S.sold[k]--; cqSheet(); } }; const v=cqE('span','cqnum',String(S.sold[k])); const p=cqE('button',null,'＋'); p.onclick=()=>{ if(S.sold[k]<c[k]&&cqSum(S.sold)<cap){ S.sold[k]++; cqSheet(); } }; w.appendChild(m); w.appendChild(v); w.appendChild(p); sr.appendChild(w); }
+  if(!mv){ const fr=cqRow(sh,'兵糧'); for(const mo of [1,2,3]){ cqBtn(fr,mo+'か月 '+cqLim(S.gens,mo)+'手',()=>{ S.mo=mo; cqSheet(); },S.mo===mo?'on':'',CQ.fac[CQ.me].food<cqFoodCost(S.sold,mo)); } fr.appendChild(cqE('span','cqv','−'+cqFoodCost(S.sold,S.mo))); }
+  const ar=cqRow(sh,''); const ok=S.to&&(mv?(S.gens.length||cqSum(S.sold)):S.gens.length)&&(mv||CQ.fac[CQ.me].food>=cqFoodCost(S.sold,S.mo));
+  if(mv)cqBtn(ar,'移動',()=>cqDoMove(),'go',!ok);
+  else { cqBtn(ar,'出陣',()=>cqGo(false),'go',!ok); cqBtn(ar,'おまかせ合戦',()=>cqGo(true),'',!ok); } }
+function cqClamp(){ const cap=cqAtkCap(cqS.gens); while(cqSum(cqS.sold)>cap){ for(const k of ['P','L','N']){ if(cqSum(cqS.sold)>cap&&cqS.sold[k]>0)cqS.sold[k]--; } } }
+function cqDoMove(){ const S=cqS, c=CQ.city[S.from], t=CQ.city[S.to]; for(const k of CQ_SOLD){ const n=Math.min(S.sold[k],c[k]); c[k]-=n; t[k]+=n; } for(const g of S.gens){ CQ.gen[g].c=S.to; CQ.gen[g].done=true; } const to=S.to; cqSave(); cqSheetClose(); cqSel=to; cqMode='city'; cqRender(); cqSheet(); }
+function cqGo(auto){ const S=cqS; const B=cqMakeBattle(CQ,S.from,S.to,S.gens,S.sold,S.mo); cqLaunch(CQ,B); B.food=cqFoodCost(B.sold,B.mo); cqSave(); cqSheetClose();
+  if(auto){ const res=cqApply(CQ,B,cqAutoOutcome(CQ,B)); cqSave(); cqRender(); cqResultModal(res); return; }
+  cqStartBoard(B); }
+function cqSheetFacs(sh){ const h=cqRow(sh); h.appendChild(cqE('span','cqh','勢力')); const x=cqE('span','cqx','✕'); x.onclick=()=>{ cqSheetClose(); }; h.appendChild(x);
+  const tb=cqE('table','cqtbl'); tb.innerHTML='<tr><th></th><th>都市</th><th>武将</th><th>兵</th><th>金</th><th>兵糧</th></tr>';
+  for(const f of Object.keys(CQ.fac)){ const F=CQ.fac[f]; const tr=cqE('tr'); const td=cqE('td'); td.appendChild(cqFacChip(f)); tr.appendChild(td); const cs=cqCities(CQ,f);
+    for(const v of [cs.length,cqFacGens(CQ,f).length,cs.reduce((a,id)=>a+cqSum(CQ.city[id]),0),F.gold,F.food])tr.appendChild(cqE('td',null,String(v))); tb.appendChild(tr); }
+  sh.appendChild(tb); }
+// ---- 真ん中に出る窓 ----
+function cqModal(build){ const m=$cq('cqModal'); m.innerHTML=''; const c=cqE('div','cqcard'); m.appendChild(c); build(c); m.style.display='flex'; }
+function cqModalClose(){ const m=$cq('cqModal'); m.style.display='none'; m.innerHTML=''; }
+function cqToast(t){ const e=$cq('cqToast'); e.textContent=t; e.classList.add('on'); clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove('on'),1200); }
+function cqStartScreen(){ let pick=null, diff=1; const old=cqLoad();
+  cqModal(c=>{ const draw=()=>{ c.innerHTML=''; c.appendChild(cqE('div','cqttl','陣取り')); c.appendChild(cqE('div','cqsub',CQ_SC.mvp.n+'　208年9月　12か月'));
+      if(old&&!old.over){ const r=cqRow(c); cqBtn(r,'続きから  '+old.y+'年'+old.m+'月',()=>{ CQ=old; cqModalClose(); cqOpen(); },'go big'); }
+      const r1=cqRow(c,'勢力'); for(const f of CQ_SC.mvp.facs){ const b=cqBtn(r1,f.n+'  '+f.cities.length+'都市',()=>{ pick=f.id; draw(); },pick===f.id?'on':''); b.style.borderLeft='6px solid '+CQ_COL[f.n]; }
+      const r2=cqRow(c,'強さ'); CQ_DIFF.forEach((d,i)=>cqBtn(r2,d.n,()=>{ diff=i; draw(); },diff===i?'on':''));
+      const r3=cqRow(c); cqBtn(r3,'始める',()=>{ if(!pick)return; CQ=cqNew('mvp',pick,diff); cqSave(); cqModalClose(); cqRender(); },'go big',!pick);
+      const r4=cqRow(c); cqBtn(r4,'タイトル',()=>{ cqModalClose(); cqToTitle(); }); }; draw(); }); }
+function cqToTitle(){ cqClose(); $cq('title').style.display='flex'; }
+function cqResumeModal(){ const B=CQ.pend; cqModal(c=>{ c.appendChild(cqE('div','cqh','合戦')); const r=cqRow(c); r.appendChild(cqFacChip(B.atk)); r.appendChild(cqE('span','cqv',CQ_CITY[B.from].n+' → '+CQ_CITY[B.to].n)); r.appendChild(cqFacChip(B.def));
+    const a=cqRow(c); cqBtn(a,'盤で戦う',()=>{ cqModalClose(); cqStartBoard(B); },'go'); cqBtn(a,'おまかせ合戦',()=>{ cqModalClose(); const res=cqApply(CQ,B,cqAutoOutcome(CQ,B)); cqSave(); cqRender(); cqResultModal(res); }); }); }
+function cqBattleInfo(c,B){ const r=cqRow(c); r.appendChild(cqFacChip(B.atk)); r.appendChild(cqE('span','cqv',CQ_CITY[B.from].n+' → '+CQ_CITY[B.to].n)); r.appendChild(cqE('span','cqtr',B.bd.l));
+  const a=cqRow(c,'攻め'); for(const g of B.gens)cqGenChip(a,g,false,null,g===B.cmd); a.appendChild(cqE('span','cqnum',cqSoldTxt(B.sold)));
+  const d=cqRow(c,'守り'); if(!B.dgens.length)d.appendChild(cqE('span','cqv','守将')); for(const g of B.dgens)cqGenChip(d,g,false,null,g===B.dcmd); d.appendChild(cqE('span','cqnum',cqSoldTxt(B.dsold))); }
+function cqDefenseModal(B){ cqRender(); cqModal(c=>{ c.appendChild(cqE('div','cqh','来襲')); cqBattleInfo(c,B); const r=cqRow(c,'手数'); r.appendChild(cqE('span','cqnum',String(B.lim)));
+    const a=cqRow(c); cqBtn(a,'迎え撃つ',()=>{ cqModalClose(); cqStartBoard(B); },'go'); cqBtn(a,'おまかせ合戦',()=>{ cqModalClose(); const res=cqApply(CQ,B,cqAutoOutcome(CQ,B)); cqSave(); cqRender(); cqResultModal(res); }); }); }
+function cqResultModal(res){ const me=CQ.me; const myAtk=res.atk===me; const won=(res.win==='atk')===myAtk;
+  cqModal(c=>{ const t=cqE('div','cqbig',won?'勝　利':'敗　北'); t.style.color=won?'#cfe3ff':'#ffb0a0'; c.appendChild(t);
+    const r=cqRow(c); r.appendChild(cqE('span','cqh',CQ_CITY[res.to].n)); r.appendChild(cqE('span','cqtr',res.taken?(myAtk?'獲得':'失陥'):(res.retreat?(myAtk?'撤退':'防衛'):(myAtk?'敗走':'防衛'))));
+    const s=cqRow(c); const ga=myAtk?res.lostA:res.lostD, gd=myAtk?res.lostD:res.lostA; s.appendChild(cqE('span','cqnum','失った兵 −'+ga)); s.appendChild(cqE('span','cqnum','敵の兵 −'+gd)); if(won&&res.surr)s.appendChild(cqE('span','cqnum','降兵 +'+res.surr));
+    const mine=res.cap.filter(g=>CQ.gen[g].st==='cap'&&CQ.gen[g].by===me), lost=res.cap.filter(g=>CQ.gen[g].st==='cap'&&CQ.gen[g].by!==me);
+    if(mine.length){ const cr=cqRow(c,'捕虜'); for(const g of mine){ const w=cqE('span','cqcap'); cqGenChip(w,g,false,null); const p=Math.round(cqRecChance(CQ,g,me)*100);
+        let b1=null; if(!CQ_GEN[g].r)b1=cqBtn(w,'登用 '+p+'%',()=>{ const ok=cqTryRecruit(CQ,g,me); cqSave(); b1.disabled=true; b2.disabled=!(!ok&&CQ.gen[g].st==='cap'); b1.textContent=ok?'登用':'×'; });
+        const b2=cqBtn(w,'解放',()=>{ cqRelease(CQ,g); cqSave(); if(b1)b1.disabled=true; b2.disabled=true; }); cr.appendChild(w); } }
+    if(lost.length){ const lr=cqRow(c,'捕縛'); for(const g of lost)cqGenChip(lr,g,false,null); }
+    if(res.esc.length){ const er=cqRow(c,'逃走'); for(const g of res.esc)cqGenChip(er,g,false,null); }
+    if(res.dead){ const dr=cqRow(c,'滅亡'); dr.appendChild(cqFacChip(res.dead)); }
+    const a=cqRow(c); cqBtn(a,'地図へ',()=>{ cqModalClose(); cqRender(); if(CQ.over){ cqOverModal(); return; } if(CQ.phase==='cpu')cqProcess(); },'go big'); }); }
+function cqNextMonth(){ if(!CQ||CQ.over||CQ.pend||CQ.phase==='cpu')return; cqSheetClose(); cqStartCpu(CQ); cqSave(); cqProcess(); }
+function cqProcess(){ const st=cqStep(CQ); cqSave(); cqRender();
+  if(st&&st.mine){ cqDefenseModal(st.B); return; }
+  if(CQ.over){ cqOverModal(); return; }
+  cqMonthModal(); }
+function cqMonthModal(){ const ev=CQ.ev||[]; cqModal(c=>{ c.appendChild(cqE('div','cqh',cqDate()));
+    for(const e of ev){ const r=cqRow(c);
+      if(e.k==='inc'){ r.appendChild(cqE('span','cqnum','金 +'+e.g)); if(e.fd)r.appendChild(cqE('span','cqnum','兵糧 +'+e.fd)); }
+      else if(e.k==='b'){ r.appendChild(cqFacChip(e.a)); r.appendChild(cqE('span','cqv',CQ_CITY[e.f].n+' → '+CQ_CITY[e.t].n)); r.appendChild(cqFacChip(e.d)); r.appendChild(cqE('span','cqtr',e.w==='atk'?'落城':(e.r?'撤退':'防衛'))); }
+      else if(e.k==='desert'){ r.appendChild(cqFacChip(e.f)); r.appendChild(cqE('span','cqnum','兵糧切れ 歩 −'+e.n)); }
+      else if(e.k==='lv'){ r.appendChild(cqE('span','cqv',CQ_CITY[e.c].n)); r.appendChild(cqE('span','cqnum',CQ_POL[e.p]+' '+e.v)); } }
+    const a=cqRow(c); cqBtn(a,'閉じる',()=>{ cqModalClose(); cqRender(); },'go big'); }); }
+function cqOverModal(){ const O=CQ.over; cqModal(c=>{ const t=cqE('div','cqbig',O.k==='win'?'天下統一':O.k==='lose'?'滅　亡':'終　戦'); t.style.color=O.k==='lose'?'#ffb0a0':'#f0d68a'; c.appendChild(t);
+    const tb=cqE('table','cqtbl'); tb.innerHTML='<tr><th></th><th></th><th>都市</th><th>点</th></tr>'; (O.rank||[]).forEach((x,i)=>{ const tr=cqE('tr'); tr.appendChild(cqE('td',null,String(i+1))); const td=cqE('td'); td.appendChild(cqFacChip(x.f)); tr.appendChild(td); tr.appendChild(cqE('td',null,String(x.c))); tr.appendChild(cqE('td',null,String(x.s))); tb.appendChild(tr); }); c.appendChild(tb);
+    const a=cqRow(c); cqBtn(a,'もう一度',()=>{ CQ=null; try{ localStorage.removeItem(CQ_KEY); }catch(e){} cqModalClose(); cqStartScreen(); cqRender(); },'go'); cqBtn(a,'地図',()=>{ cqModalClose(); }); cqBtn(a,'タイトル',()=>{ cqModalClose(); cqToTitle(); }); }); }
+// ---- 盤での合戦 ----
+function cqArmyTypes(gl,sold){ const a=gl.filter(x=>x.pc!=='K').map(x=>x.pc); for(const k of ['N','L','P'])for(let i=0;i<(sold[k]|0);i++)a.push(k); return a; }
+function cqStartBoard(B){ const Q=CQ, me=Q.me, bd=B.bd; const pDef=(B.def===me); const sym=(bd.mt==='plain'||bd.mt==='hill'||bd.mt==='mountain');
+  const defSide=sym?(pDef?0:1):bd.def; const ps=pDef?defSide:1-defSide; const as=1-defSide;
+  const gl=(gens,cmd)=>gens.length?gens.map(g=>({id:g,pc:g===cmd?'K':CQ_GEN[g].pc})):[{id:'_shu',pc:'K'}];
+  const G={}; G[as]=gl(B.gens,B.cmd); G[defSide]=gl(B.dgens,B.dcmd); const AR={}; AR[as]=cqArmyTypes(G[as],B.sold); AR[defSide]=cqArmyTypes(G[defSide],B.dsold);
+  let first=as; const D3=s3dDef(bd.mt); if(D3)first=D3.first; else if(bd.mt==='siege')first=0; else if(cqHasTr(B.dgens,'神速')&&!cqHasTr(B.gens,'神速'))first=defSide;
+  if(!CQ_SV)CQ_SV={mapType,density,ME,humanFirst,AI_TIME,showEnemy,handLimit,scenario};
+  try{ if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; } stopPonder(); }catch(e){}
+  CQB={B,defSide,as,ps,gens:G,army:AR,lim:B.lim,HG:{0:[],1:[]},undo:[],uid:0,first};
+  document.body.classList.add('cqb'); cqClose(); $cq('title').style.display='none'; $cq('banner').style.display='none';
+  scenario=null; mapType=bd.mt; density=bd.o||'normal'; setSide(ps); humanFirst=sym?(first===ps):(ps===0);
+  AI_TIME=CQ_DIFF[Q.diff].ms; showEnemy=cqHasTr(pDef?B.dgens:B.gens,'看破');
+  newTerrain(false); cqPatchTerrain(); handLimit=99; reserve=AR[ps].slice();
+  state={phase:"placement",board:emptyBoard(),walls:{},fences:Object.assign({},terrain.presetFences||{}),forts:{0:[],1:[]},hand:{0:[],1:[]},turn:0,winner:null,selected:null,legal:[],dropType:null,lastMove:null,kingPlaced:false,fortPlaced:false,history:[]};
+  undoStack=[]; trayPick=null; rebuildCoords(); syncScene(); buildStructures(); renderHUD(); setMsg(''); layout(); }
+function cqPatchTerrain(){ if(!CQB||!terrain)return; terrain.hold={side:CQB.defSide,n:CQB.lim}; delete terrain.judge; }
+function cqRestore(){ const sv=CQ_SV; CQB=null; CQ_SV=null; document.body.classList.remove('cqb'); try{ if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; } stopPonder(); }catch(e){} $cq('banner').style.display='none';
+  if(!sv)return; density=sv.density; AI_TIME=sv.AI_TIME; showEnemy=sv.showEnemy; humanFirst=sv.humanFirst; reserve=[];
+  if(sv.scenario&&(sv.mapType==='scenario'||s3dDef(sv.mapType))){ loadScenario(sv.scenario); return; }
+  mapType=sv.mapType; handLimit=sv.handLimit; scenario=null; setSide(sv.mapType==='siege'?sv.ME:0); newTerrain(false); enterArmy(); }
+function cqBase(t){ return (PIECE[t]&&PIECE[t].base)||t; }
+function cqTag(){ if(!CQB||!state||!state.board)return; for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(p&&p.u==null){ p.u=++CQB.uid; if(p.o==null)p.o=p.player; } } }
+function cqAssign(){ if(!CQB||!state||!state.board)return; const used={}; for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(p&&p.gen)used[p.gen]=1; }
+  for(const s of [0,1]){ const pool=CQB.gens[s].filter(g=>!used[g.id]); for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(!p||p.player!==s||p.gen||CQ_SOLD.indexOf(p.type)>=0)continue; const i=pool.findIndex(g=>g.pc===p.type); if(i>=0){ p.gen=pool[i].id; pool.splice(i,1); } } } }
+function cqSnapU(){ const m={}; for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(p&&p.u!=null)m[p.u]={type:p.type,player:p.player,gen:p.gen,o:p.o}; } return m; }
+function cqDiffU(before){ const now={}; for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(p&&p.u!=null)now[p.u]=1; }
+  for(const u in before){ if(now[u])continue; const b=before[u]; if(b.type==='K')continue; CQB.HG[1-b.player].push({t:cqBase(b.type),gen:b.gen||null,o:b.o==null?b.player:b.o}); } }
+function cqCollect(){ const B=CQ.pend, ds=CQB.defSide, as=CQB.as; const win=state.winner===as?'atk':'def';
+  const ka=(s)=>{ for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(p&&p.type==='K'&&p.player===s)return true; } return false; };
+  const retreat=win==='def'&&(state.history||[]).length>=CQB.lim&&ka(0)&&ka(1);
+  const side=(s,gens)=>{ const own=[],held=[]; for(const g of gens){ let loc='own'; for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(p&&p.gen===g)loc=(p.player===s)?'own':'held'; }
+      if(CQB.HG[s].some(e=>e.gen===g))loc='own'; if(CQB.HG[1-s].some(e=>e.gen===g))loc='held'; (loc==='own'?own:held).push(g); }
+    const sold=cqZ(), capt=cqZ(); for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const p=state.board[r][c]; if(!p||p.player!==s||p.gen||p.type==='K')continue; const t=cqBase(p.type); if(CQ_SOLD.indexOf(t)<0)continue; ((p.o==null?s:p.o)===s?sold:capt)[t]++; }
+    for(const e of CQB.HG[s]){ if(e.gen||CQ_SOLD.indexOf(e.t)<0)continue; (e.o===s?sold:capt)[e.t]++; }
+    return {gensOwn:own,gensHeld:held,sold,capt}; };
+  return {win,retreat,atk:side(as,B.gens),def:side(ds,B.dgens)}; }
+function cqAfterBoard(){ if(!CQB)return; const B=CQ.pend; let out=null; try{ if(state&&state.winner!=null)out=cqCollect(); }catch(e){ try{console.warn('cqCollect',e);}catch(_){} }
+  if(!out)out=cqAutoOutcome(CQ,B); cqRestore(); const res=cqApply(CQ,B,out); cqSave(); cqOpen(); cqResultModal(res); }
+function cqAutoFromBoard(){ if(!CQB)return; const B=CQ.pend; cqRestore(); const res=cqApply(CQ,B,cqAutoOutcome(CQ,B)); cqSave(); cqOpen(); cqResultModal(res); }
+function cqRetreatBoard(){ if(!CQB||!state||state.phase!=='placement'||CQ.pend.def===CQ.me)return; const B=CQ.pend; cqRestore(); cqCancel(CQ,B); CQ.fac[B.atk].food+=B.food||0; for(const g of B.gens)CQ.gen[g].done=false; cqSave(); cqOpen(); }
+function cqAutoPlace(){ if(!CQB||!state||state.phase!=='placement')return; const army=reserve.slice(); const plan=pickPlacementForTerrain(terrain,ME,army,FENCE_MAX,null,[]);
+  state.board=emptyBoard(); state.fences=Object.assign({},terrain.presetFences||{}); state.forts={0:[],1:[]};
+  const forts=(plan.forts||(plan.fort?[plan.fort]:[])).slice();
+  if(isFortKing(ME)&&forts.length){ const kf=forts.find(([r,c])=>terrain.grid[r][c]===TERRAIN.FOREST)||forts[0]; plan.king=kf.slice(); plan.pieces=plan.pieces.filter(p=>!(p.r===kf[0]&&p.c===kf[1])); }
+  const kr=plan.king[0], kc=plan.king[1]; state.board[kr][kc]={type:'K',player:ME,promoted:false,hidden:isFortKing(ME)?(terrain.grid[kr][kc]===TERRAIN.FOREST):true}; state.kingPlaced=true;
+  for(const p of plan.pieces){ if(forts.some(f=>f[0]===p.r&&f[1]===p.c)||state.board[p.r][p.c])continue; state.board[p.r][p.c]={type:p.type,player:ME,promoted:false,hidden:terrain.grid[p.r][p.c]===TERRAIN.FOREST}; }
+  for(const k of (plan.fences||[]))if(!state.board[+k.split('_')[0]][+k.split('_')[1]])state.fences[k]=ME; state.forts[ME]=forts; state.fortPlaced=forts.length>=FORT_MAX();
+  for(const it of trayItems()){ for(let n=0;n<it.count;n++){ let done=false; for(const r of homeRows(ME)){ for(let c=0;c<N&&!done;c++){ if(canPlaceHere(r,c)&&state.fences[r+'_'+c]===undefined){ state.board[r][c]={type:it.type,player:ME,promoted:false,hidden:terrain.grid[r][c]===TERRAIN.FOREST}; done=true; } } if(done)break; } } }
+  trayPick=null; syncScene(); buildStructures(); renderHUD(); }
+function cqPatchHUD(){ const panel=$cq('panel'); if(!panel||!state)return;
+  for(const b of panel.querySelectorAll('button')){ const t=b.textContent; if(t==='← 駒選び'){ b.textContent='おまかせ配置'; b.onclick=cqAutoPlace; const r=b.parentNode; const a=cqE('button','btn','おまかせ合戦'); a.onclick=cqAutoFromBoard; r.appendChild(a);
+      if(CQ.pend&&CQ.pend.def!==CQ.me){ const x=cqE('button','btn','撤退'); x.onclick=cqRetreatBoard; r.appendChild(x); } }
+    else if(t==='配置に戻る')b.style.display='none'; }
+  const hc=$cq('holdchip'); if(hc)hc.textContent='兵糧 残り'+Math.max(0,CQB.lim-(state.history||[]).length)+'手'; }
+const _cqLM={};
+function cqLabelMat(name,ch,team){ const key=name+'|'+ch+'|'+team; if(_cqLM[key])return _cqLM[key];
+  const W=512,H=176; const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const t=TEAM[team]||TEAM[1];
+  x.shadowColor='rgba(0,0,0,0.6)'; x.shadowBlur=14; x.shadowOffsetY=6; x.fillStyle='rgba(18,13,10,0.94)'; _rr(x,16,18,W-32,H-40,22); x.fill(); x.shadowColor='transparent';
+  x.lineWidth=7; x.strokeStyle='#d8b461'; _rr(x,16,18,W-32,H-40,22); x.stroke(); x.lineWidth=2; x.strokeStyle='rgba(255,240,200,0.35)'; _rr(x,26,28,W-52,H-60,16); x.stroke();
+  x.fillStyle=_hex(t.glow); _rr(x,30,32,40,H-68,10); x.fill();
+  const fs=name.length>=3?100:118; x.font='900 '+fs+'px "Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif'; x.textAlign='center'; x.textBaseline='middle';
+  x.lineWidth=8; x.strokeStyle='rgba(0,0,0,0.7)'; x.fillStyle='#fff'; const cx=W/2-6; x.strokeText(name,cx,H/2-2); x.fillText(name,cx,H/2-2);
+  x.font='900 50px "Yu Mincho","Hiragino Mincho ProN",serif'; x.fillStyle='#d8b461'; x.fillText(ch,W-66,H/2+26);
+  const tex=new THREE.CanvasTexture(cv); tex.anisotropy=4; tex.encoding=THREE.sRGBEncoding; const m=new THREE.SpriteMaterial({map:tex,depthTest:false,transparent:true}); _cqLM[key]=m; return m; }
+function cqLabels(){ if(!SHOW_NAMES||!state||!state.board)return; for(const g of pieceGroup.children){ const cell=g.userData.cell; if(!cell)continue; const p=state.board[cell[0]][cell[1]]; if(!p||!p.gen)continue; const base=_labelMat[p.type+'_'+p.player]; if(!base)continue;
+    const mm=cqLabelMat(cqGN(p.gen),PIECE[p.type]?PIECE[p.type].label:'',p.player); g.traverse(o=>{ if(o.isSprite&&o.material===base)o.material=mm; }); } }
+// ---- 本体の関数を包む（陣取りの合戦中だけ働く。普通の対局・シナリオ・オンラインでは素通り） ----
+(function(){
+  const _sync=syncScene; syncScene=function(){ if(CQB&&state){ try{ if(state.phase==='placement'||(state.phase==='play'&&!(state.history||[]).length))cqAssign(); cqTag(); }catch(e){} } const r=_sync.apply(this,arguments); if(CQB){ try{ cqLabels(); }catch(e){} } return r; };
+  const _mv=executeMove; executeMove=function(){ if(!CQB)return _mv.apply(this,arguments); cqTag(); const b=cqSnapU(); const r=_mv.apply(this,arguments); cqDiffU(b); return r; };
+  const _fi=executeFire; executeFire=function(){ if(!CQB)return _fi.apply(this,arguments); cqTag(); const b=cqSnapU(); const r=_fi.apply(this,arguments); cqDiffU(b); return r; };
+  const _dp=dropPiece; dropPiece=function(side,type,r,c){ const res=_dp.apply(this,arguments); if(CQB){ const p=state.board[r][c]; if(p){ const H=CQB.HG[side]; let k=-1; for(let i=H.length-1;i>=0;i--)if(H[i].t===type){ k=i; break; } if(k>=0){ const e=H.splice(k,1)[0]; if(e.gen)p.gen=e.gen; p.o=e.o; } else p.o=side; p.u=++CQB.uid; } } return res; };
+  const _pu=pushUndo; pushUndo=function(){ _pu.apply(this,arguments); if(CQB){ CQB.undo.push(JSON.stringify(CQB.HG)); if(CQB.undo.length>40)CQB.undo.shift(); } };
+  const _tb=takeback; takeback=function(){ const n=undoStack.length; const r=_tb.apply(this,arguments); if(CQB&&undoStack.length<n){ const s=CQB.undo.pop(); if(s)CQB.HG=JSON.parse(s); } return r; };
+  const _pa=pickArmyForTerrain; pickArmyForTerrain=function(t,side){ if(CQB&&CQB.army&&CQB.army[side])return CQB.army[side].slice(); return _pa.apply(this,arguments); };
+  const _rb=rebuildTerrainWithBurns; rebuildTerrainWithBurns=function(){ const r=_rb.apply(this,arguments); if(CQB)cqPatchTerrain(); return r; };
+  const _eb=endBanner; endBanner=function(){ const r=_eb.apply(this,arguments); if(CQB){ const ag=$cq('btnAgain'); if(ag)ag.textContent='結果へ'; } return r; };
+  const _rh=renderHUD; renderHUD=function(){ const r=_rh.apply(this,arguments); if(CQB){ try{ cqPatchHUD(); }catch(e){} } return r; };
+  const _an=animate; animate=function(t){ if(cqUIOpen){ requestAnimationFrame(animate); return; } return _an.apply(this,arguments); };
+  const ag=$cq('btnAgain'); if(ag){ const f=ag.onclick; ag.onclick=function(e){ if(CQB){ cqAfterBoard(); return; } return f&&f.call(this,e); }; }
+  for(const id of ['tAI','tOnline']){ const b=$cq(id); if(!b)continue; const f=b.onclick; b.onclick=function(e){ if(id==='tAI'&&CQB){ $cq('title').style.display='none'; return; } if(CQB)cqRestore(); cqClose(); return f&&f.call(this,e); }; }
+  const tc=$cq('tConq'); if(tc)tc.onclick=()=>{ try{ setChatOpen(false); }catch(e){} cqOpen(); };
+  $cq('cqNext').onclick=cqNextMonth;
+  $cq('cqAllAuto').onclick=()=>{ if(!CQ)return; for(const id of cqCities(CQ,CQ.me))CQ.city[id].pol='auto'; cqSave(); cqToast('委任'); if(cqMode==='city')cqSheet(); };
+  $cq('cqFacs').onclick=()=>{ if(!CQ)return; cqSheetClose(); cqMode='facs'; cqSheet(); };
+  $cq('cqSave').onclick=()=>{ if(!CQ)return; cqSave(); try{ if(cloudGet())cloudPush(true); }catch(e){} cqToast('保存しました'); };
+  $cq('cqTitle').onclick=cqToTitle;
+  addEventListener('resize',()=>{ if(cqUIOpen)cqMap(); });
+})();
+window.__cq={ get:()=>CQ, set:(q)=>{ CQ=q; cqSave(); }, board:()=>CQB, open:cqOpen, start:(f,d)=>{ CQ=cqNew('mvp',f,d==null?1:d); cqSave(); cqModalClose(); cqRender(); }, next:cqNextMonth, after:cqAfterBoard, autoPlace:cqAutoPlace,
+  sortie:(from,to)=>cqSortie(from,to,'sortie'), go:cqGo, city:(id)=>cqTap(id) };
 </script>
 <script type="text/js-lazy" id="lib_gltf">( function () {
 
