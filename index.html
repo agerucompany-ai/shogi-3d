@@ -12,7 +12,8 @@
   .srow { display:flex; align-items:center; gap:8px; margin:5px 0; }
   .slbl { flex:0 0 4.6em; font-size:11px; font-weight:800; color:var(--gold); letter-spacing:1px; line-height:1.2; white-space:nowrap; }
   .sbtns { flex:1 1 auto; min-width:0; display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
-  .sbtns.scroll { flex-wrap:nowrap; }
+  .sbtns.scroll { flex-wrap:wrap; overflow-x:visible; }   /* 駒の行：スマホでは折り返す（横スクロールにしない） */
+  @media (max-width:520px){ .sbtns.scroll .pick { min-width:0; padding:4px 3px 3px; } .sbtns.scroll .pm button { width:21px; height:22px; } }
   .sname { font-size:13px; font-weight:800; color:#fff; padding:0 4px; }
   .sname.none { color:var(--mute); font-weight:700; }
   .sval { font-size:12px; font-weight:800; color:var(--paper); min-width:2.2em; text-align:center; }
@@ -140,7 +141,7 @@
 <div id="title">
   <div class="tcard">
     <div class="tlogo">地形将棋<span class="seal">三國</span></div>
-    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-23-cliff2</span></div>
+    <div class="tsub">十一路 ・ 地形 ・ 城 ・ 三國の武将<span class="bld">build 2026-10-24-hill</span></div>
     <button class="btn go big" id="tAI">コンピューターと対戦</button>
     <button class="btn big" id="tOnline" style="background:linear-gradient(180deg,#6f4a9a,#4b2f6e);color:#fff;border-color:#b797e0">オンライン対戦</button>
     <button class="btn big" id="tRules">ルール</button>
@@ -151,7 +152,7 @@
       <div id="olForm">
         <div class="srow"><span class="slbl">名前</span><div class="sbtns"><input id="olName" placeholder="名前" maxlength="12" style="width:100%;max-width:220px"></div></div>
         <div id="olHostOpts">
-        <div class="srow"><span class="slbl">マップ</span><div class="sbtns"><button class="btn on" id="olMapPlain">平地戦</button><button class="btn" id="olMapSiege">攻城戦</button><button class="btn" id="olMapMountain">山</button><button class="btn" id="olMapS3D">シナリオ</button></div></div>
+        <div class="srow"><span class="slbl">マップ</span><div class="sbtns"><button class="btn on" id="olMapPlain">平地戦</button><button class="btn" id="olMapSiege">攻城戦</button><button class="btn" id="olMapMountain">山</button><button class="btn" id="olMapHill">丘陵</button><button class="btn" id="olMapS3D">シナリオ</button></div></div>
         <div class="srow" id="olS3DRow" style="display:none"><span class="slbl">物語</span><div class="sbtns"><select id="olS3D" style="padding:7px 10px;border-radius:5px;border:1px solid var(--gold2);background:var(--lac2);color:var(--paper);font-weight:800;font-size:13px;max-width:100%"></select></div></div>
         <div class="srow" id="olS3DSideRow" style="display:none"><span class="slbl">陣営</span><div class="sbtns"><button class="btn on" id="olS3DSide0">先</button><button class="btn" id="olS3DSide1">後</button></div></div>
         <div class="srow" id="olRoleRow" style="display:none"><span class="slbl">役割</span><div class="sbtns"><button class="btn on" id="olRoleAtk">攻め(砦)</button><button class="btn" id="olRoleDef">守り(城)</button></div></div>
@@ -200,7 +201,7 @@
 ・<b>砦</b>：取った駒を周囲にも打てる前線拠点（数・置ける場所はマップで変わる→上の「今のマップ」参照）。<b>旗の色＝所有者</b>（先手青／後手赤）。敵の砦に駒で入ると制圧（旗が変わる）。<br>
 ・<b>砦拠点（山・攻城戦の攻め）</b>：砦3つ（2つは最深3行）・<b>王は砦のどれかの上</b>に置く。森の砦に置けば位置が伏せられる。<b>全砦を陥落させられると負け</b>（王取りでも決着）。砦が1つ落ちるごとに相手の隠れ砦が1つ見える。<br>
 ・<b>火計（かけい）</b>：<b>成り駒（と金・成香・成桂・成銀・竜・馬）と金</b>は、<b>自分が森の上にいて、周囲8マスに森が5マス以上ある</b>（自分のマスと合わせて森6マス）とき発動でき、周囲の森に隠れた<b>敵駒・敵砦</b>を全て取る／制圧する（1手消費・駒は動かない）。<b>各駒1度だけ</b>。焼けた<b>森・柵は消失して平地</b>になる（自分のいる森マスも平地化）。＝森に隠しっぱなしは危険。<b>火計で奪えるのは砦まで＝城は制圧できない</b>（城は駒で入城して奪う）。発動＝火計可の駒を選び、もう一度タップ（またはオレンジの森／🔥火計ボタン）。
-<h4 style="color:#d9a066">■ 高低差（シナリオの一部）</h4>
+<h4 style="color:#d9a066">■ 高低差（丘陵・シナリオの一部）</h4>
 <div class="cfigs"><figure class="cfig"><svg viewBox="0 0 160 92" width="100%"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5df08a"/></marker><marker id="ahx" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4a"/></marker></defs><rect x="0" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="0" y="76" width="40" height="4" fill="#7fa05a"/><rect x="40" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="40" y="76" width="40" height="4" fill="#7fa05a"/><rect x="80" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="80" y="56" width="40" height="4" fill="#7fa05a"/><rect x="120" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="120" y="56" width="40" height="4" fill="#7fa05a"/><path d="M20 54 L29 59 L31 76 L9 76 L11 59Z" fill="#cfe0ff" stroke="#222" stroke-width="1"/><path d="M26 50 Q63 12 100 30" fill="none" stroke="#5df08a" stroke-width="3" marker-end="url(#ah)"/><path d="M93 27 L100 19 L107 27" fill="none" stroke="#fff2b0" stroke-width="3"/><path d="M108 34 Q123 16 138 34" fill="none" stroke="#ff5a4a" stroke-width="3" marker-end="url(#ahx)"/><text x="140" y="28" font-size="20" font-weight="900" fill="#ff5a4a" text-anchor="middle">✕</text></svg><figcaption>上りは1段・そこで止まる</figcaption></figure><figure class="cfig"><svg viewBox="0 0 160 92" width="100%"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5df08a"/></marker><marker id="ahx" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4a"/></marker></defs><rect x="0" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="0" y="76" width="40" height="4" fill="#7fa05a"/><rect x="40" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="40" y="76" width="40" height="4" fill="#7fa05a"/><rect x="80" y="36" width="40" height="50" fill="#6b5a40" stroke="#2a2016"/><rect x="80" y="36" width="40" height="4" fill="#7fa05a"/><rect x="120" y="36" width="40" height="50" fill="#6b5a40" stroke="#2a2016"/><rect x="120" y="36" width="40" height="4" fill="#7fa05a"/><path d="M60 54 L69 59 L71 76 L49 76 L51 59Z" fill="#cfe0ff" stroke="#222" stroke-width="1"/><path d="M66 50 Q82 2 98 20" fill="none" stroke="#ff5a4a" stroke-width="3" marker-end="url(#ahx)"/><text x="92" y="22" font-size="20" font-weight="900" fill="#ff5a4a" text-anchor="middle">✕</text><path d="M98 14 Q81 -4 64 46" fill="none" stroke="#ff5a4a" stroke-width="3" marker-end="url(#ahx)"/></svg><figcaption>2段の崖は通れない</figcaption></figure><figure class="cfig"><svg viewBox="0 0 160 92" width="100%"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5df08a"/></marker><marker id="ahx" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4a"/></marker></defs><rect x="0" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="0" y="56" width="40" height="4" fill="#7fa05a"/><rect x="40" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="40" y="56" width="40" height="4" fill="#7fa05a"/><rect x="80" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="80" y="76" width="40" height="4" fill="#7fa05a"/><rect x="120" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="120" y="76" width="40" height="4" fill="#7fa05a"/><rect x="80" y="56" width="8" height="20" fill="#9a8a70" stroke="#2a2016" stroke-width=".6"/><rect x="88" y="62.666666666666664" width="8" height="13.333333333333332" fill="#9a8a70" stroke="#2a2016" stroke-width=".6"/><rect x="96" y="69.33333333333333" width="8" height="6.666666666666666" fill="#9a8a70" stroke="#2a2016" stroke-width=".6"/><path d="M60 34 L69 39 L71 56 L49 56 L51 39Z" fill="#cfe0ff" stroke="#222" stroke-width="1"/><path d="M66 30 Q89 12 112 56" fill="none" stroke="#5df08a" stroke-width="3" marker-end="url(#ah)"/><text x="92" y="88" font-size="10" fill="#e8dcc0" text-anchor="middle">坂</text></svg><figcaption>下りは坂（石段）だけ</figcaption></figure><figure class="cfig"><svg viewBox="0 0 160 92" width="100%"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5df08a"/></marker><marker id="ahx" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4a"/></marker></defs><rect x="0" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="0" y="56" width="40" height="4" fill="#7fa05a"/><rect x="40" y="56" width="40" height="30" fill="#6b5a40" stroke="#2a2016"/><rect x="40" y="56" width="40" height="4" fill="#7fa05a"/><rect x="80" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="80" y="76" width="40" height="4" fill="#7fa05a"/><rect x="120" y="76" width="40" height="10" fill="#6b5a40" stroke="#2a2016"/><rect x="120" y="76" width="40" height="4" fill="#7fa05a"/><path d="M60 34 L69 39 L71 56 L49 56 L51 39Z" fill="#cfe0ff" stroke="#222" stroke-width="1"/><path d="M100 54 L109 59 L111 76 L89 76 L91 59Z" fill="#ffb0a0" stroke="#222" stroke-width="1"/><path d="M66 30 Q83 12 100 50" fill="none" stroke="#5df08a" stroke-width="3" marker-end="url(#ah)"/></svg><figcaption>逆落とし＝1段下の敵は取れる</figcaption></figure></div>
 ・点の数＝段。崖のふちは太い線とケバ、石段のマス＝坂。<br>
 ・<b>上りは1手で1段だけ</b>。上ったマスで止まる（飛角香も）。同じ高さの上は走れる。<br>
@@ -384,9 +385,95 @@ function t3dJudge(walls,forts,board,hand,first){ var st=[0,0],mat=[0,0],k,s;
   if(mat[0]!==mat[1])return mat[0]>mat[1]?0:1;
   return first===0?1:0; }
 
+/* ===== 丘陵（2026-10-24 hill）：普通の対局用の、毎回ランダムに作る高低差マップ =====
+   丘(2〜3段)・台地(2段・周りは崖)・尾根と谷(尾根の切れ目の低い通り道)・坂(石段)。森と川の量は「森・川」の設定(少・普・多)どおり。
+   上半分(後手の陣)を作って点対称に写す＝両軍の地形は同じ（公平）。ルールは平地戦(城2つ・柵3つ・砦1つ)＋崖の規則(t3dStep/t3dUp)。
+   作った後、川以外の全マスから両軍の城4つへ歩いて行けるか(駒なし・坂と崖の規則どおり)を探索で確かめ、
+   行けないマスには坂を足す(足りなければ段を変える)。＝閉じ込められて出られない所は残らない・城どうしは必ずつながる。
+   クライアント本体・AI Worker・サーバー(gameLogic.js)の3か所に同じ文面で入れる（同じ seed/opts → 乱数列まで同じ地形）。 */
+function hillReach(T,tr,tc){ var H=T.height,G=T.grid,ok=[],q=[],r,c,h,dr,dc,a,b;
+  for(r=0;r<N;r++){ ok.push([]); for(c=0;c<N;c++)ok[r].push(0); }
+  ok[tr][tc]=1; q.push(tr*N+tc);
+  for(h=0;h<q.length;h++){ r=(q[h]/N)|0; c=q[h]-r*N;
+    for(dr=-1;dr<=1;dr++)for(dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; a=r+dr; b=c+dc; if(a<0||a>=N||b<0||b>=N)continue; if(ok[a][b]||G[a][b]===TERRAIN.RIVER)continue;
+      if(t3dStep(T,a,b,r,c,false)){ ok[a][b]=1; q.push(a*N+b); } } }
+  return ok; }
+// 地形の確かめ：bad=城のどれかへ歩いて行けないマス(川以外)。ok[r][c]=1 ならそのマスから城4つすべてへ行ける
+function hillCheck(T){ var cs=T.castles[0].concat(T.castles[1]), ok=[], r,c,i,R,bad=[];
+  for(r=0;r<N;r++){ ok.push([]); for(c=0;c<N;c++)ok[r].push(1); }
+  for(i=0;i<cs.length;i++){ R=hillReach(T,cs[i][0],cs[i][1]); for(r=0;r<N;r++)for(c=0;c<N;c++){ if(!R[r][c])ok[r][c]=0; } }
+  for(r=0;r<N;r++)for(c=0;c<N;c++){ if(T.grid[r][c]===TERRAIN.RIVER)continue; if(!ok[r][c])bad.push([r,c]); }
+  return {bad:bad,ok:ok}; }
+function genTerrainHill(seed,opts){
+  var s=seed>>>0; var rnd=function(){ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; var rint=function(n){ return Math.floor(rnd()*n); };
+  var lvOf=function(v){ return v==='sparse'?0:(v==='dense'?2:1); };
+  var fLv=lvOf(typeof opts==='string'?opts:(opts&&opts.forest)), rLv=lvOf(typeof opts==='string'?opts:(opts&&opts.river));
+  var M=MIDDLE_ROW, grid=[], H=[], S=[], r, c, i, k, dr, dc, t;
+  for(r=0;r<N;r++){ grid.push([]); H.push([]); S.push([]); for(c=0;c<N;c++){ grid[r].push(TERRAIN.PLAIN); H[r].push(0); S[r].push(0); } }
+  var up=function(r,c,v){ if(r<0||r>=M||c<0||c>=N)return; if(v>H[r][c]){ H[r][c]=v; H[N-1-r][N-1-c]=v; } };   // 上半分に盛って点対称に写す
+  var setH=function(r,c,v){ H[r][c]=v; H[N-1-r][N-1-c]=v; };
+  var setS=function(r,c){ S[r][c]=1; S[N-1-r][N-1-c]=1; };
+  // 1) 川：中央の行。中央の筋＋左右対称の組で 3/5/7 本
+  var want=[3,5,7][rLv], cols=[0,1,2,3,4]; grid[M][M]=TERRAIN.RIVER;
+  for(i=cols.length-1;i>0;i--){ k=rint(i+1); t=cols[i]; cols[i]=cols[k]; cols[k]=t; }
+  for(i=0;i<(want-1)/2;i++){ grid[M][cols[i]]=TERRAIN.RIVER; grid[M][N-1-cols[i]]=TERRAIN.RIVER; }
+  // 2) 城：後手は奥2行に2つ(5筋以上離す)。先手は点対称の位置
+  var castles={0:[],1:[]}, tries=0, cr, cc, okc;
+  while(castles[1].length<2&&tries<600){ tries++; cr=rnd()<0.5?0:1; cc=rint(N); okc=true;
+    for(i=0;i<castles[1].length;i++){ if(Math.abs(castles[1][i][1]-cc)<5)okc=false; }
+    if(okc)castles[1].push([cr,cc]); }
+  if(castles[1].length<2)castles[1]=[[0,1],[0,N-2]];
+  for(i=0;i<2;i++)castles[0].push([N-1-castles[1][i][0],N-1-castles[1][i][1]]);
+  // 3) 丘と台地：2〜3つ。丘＝段々(頂3段/丘2段)、片側が崖になることがある。台地＝2段の平らな高台(周りは崖)
+  var nh=2+(rnd()<0.5?1:0), kind, hr, hc, R2, cut, d, w, top, left;
+  var raised=function(){ var n=0; for(var r3=0;r3<M;r3++)for(var c3=0;c3<N;c3++){ if(H[r3][c3])n++; } return n; };
+  for(k=0;k<nh;k++){ if(k>0&&raised()>=20)break;   // 高い所は陣の4割ほどまで（盤が段だらけにならないように）
+    kind=rnd(); hr=1+rint(3); hc=rint(N);
+    if(kind<0.7){ R2=kind<0.3?2:1; cut=rnd()<0.5?rint(4):-1;
+      for(dr=-R2;dr<=R2;dr++)for(dc=-R2;dc<=R2;dc++){ d=Math.max(Math.abs(dr),Math.abs(dc));
+        if(d===R2&&cut>=0&&((cut===0&&dr===-R2)||(cut===1&&dr===R2)||(cut===2&&dc===-R2)||(cut===3&&dc===R2)))continue;
+        up(hr+dr,hc+dc,R2+1-d); } }
+    else { w=3+rint(2); top=1+rint(2); left=rint(N-w+1);
+      for(r=top;r<top+2;r++)for(c=left;c<left+w;c++)up(r,c,2); } }
+  // 4) 尾根と谷：1段の尾根の切れ目が0段の谷道。谷の両脇は2段の崖
+  if(rnd()<0.6){ var rr=2+rint(2), L=5+rint(3), a0=rint(N-L+1), g=a0+1+rint(L-2);
+    for(c=a0;c<a0+L;c++)up(rr,c,1);
+    setH(rr,g,0); up(rr,g-1,2); up(rr,g+1,2); }
+  // 5) 石段を2〜3か所足す（高い側のマスで、1段下の隣があるところ）
+  { var ns=2+rint(2), cand=[];
+    for(r=0;r<M;r++)for(c=0;c<N;c++){ if(!H[r][c])continue; var lw=false; for(dr=-1;dr<=1;dr++)for(dc=-1;dc<=1;dc++){ var r2=r+dr, c2=c+dc; if((dr||dc)&&r2>=0&&r2<N&&c2>=0&&c2<N&&H[r2][c2]===H[r][c]-1)lw=true; } if(lw)cand.push([r,c]); }
+    for(i=0;i<ns&&cand.length;i++){ k=rint(cand.length); setS(cand[k][0],cand[k][1]); cand.splice(k,1); } }
+  for(i=0;i<2;i++)for(k=0;k<2;k++){ t=castles[k][i]; grid[t[0]][t[1]]=TERRAIN.CASTLE; }
+  // 6) 森：後手の陣(5行)に 3/6/9 マス(城の周りは避ける)。先手は点対称
+  { var per=[3,6,9][fLv], cells=[], near;
+    for(r=0;r<M;r++)for(c=0;c<N;c++){ if(grid[r][c]!==TERRAIN.PLAIN)continue; near=false;
+      for(k=0;k<2;k++)for(i=0;i<2;i++){ t=castles[k][i]; if(Math.abs(t[0]-r)<=1&&Math.abs(t[1]-c)<=1)near=true; }
+      if(!near)cells.push([r,c]); }
+    for(i=cells.length-1;i>0;i--){ k=rint(i+1); t=cells[i]; cells[i]=cells[k]; cells[k]=t; }
+    for(i=0;i<per&&i<cells.length;i++){ t=cells[i]; grid[t[0]][t[1]]=TERRAIN.FOREST; grid[N-1-t[0]][N-1-t[1]]=TERRAIN.FOREST; } }
+  // 7) つながりの確かめと手直し：行けないマスに坂を足す（坂は高い側のマス＝石段が見える）。足りなければ段を1つ変える
+  var T={grid:grid,castles:castles,height:H,slope:S};
+  var cs4=castles[0].concat(castles[1]);
+  for(var it=0;it<600;it++){ var fs=[], fh=[], u, ur, uc, hu, vr, vc, hv, R=null, x, any=false;
+    for(x=0;x<4&&!any;x++){ R=hillReach(T,cs4[x][0],cs4[x][1]);   // 城ごとに：その城へ行けないマスを、行けるマスとの境目で直す
+      for(ur=0;ur<N;ur++)for(uc=0;uc<N;uc++){ if(R[ur][uc]||grid[ur][uc]===TERRAIN.RIVER)continue; any=true; hu=H[ur][uc];
+        for(dr=-1;dr<=1;dr++)for(dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; vr=ur+dr; vc=uc+dc; if(vr<0||vr>=N||vc<0||vc>=N)continue; if(!R[vr][vc])continue; hv=H[vr][vc];
+          if(hv===hu-1)fs.push([ur,uc]); else if(hv<hu-1)fh.push([ur,uc,hu-1]); else if(hv>hu+1)fh.push([ur,uc,hu+1]); } } }
+    if(!any)break;
+    if(fs.length){ u=fs[rint(fs.length)]; setS(u[0],u[1]); }
+    else if(fh.length){ u=fh[rint(fh.length)]; setH(u[0],u[1],u[2]); }
+    else { for(r=0;r<N;r++)for(c=0;c<N;c++){ if(H[r][c]>0)H[r][c]--; } } }
+  // 坂のマスでも下りの隣が無いもの（段を変えた跡）は坂の印を外す
+  var S0=S.map(function(row){ return row.slice(); });
+  for(r=0;r<N;r++)for(c=0;c<N;c++){ if(!S[r][c])continue; var low=false; for(dr=-1;dr<=1;dr++)for(dc=-1;dc<=1;dc++){ vr=r+dr; vc=c+dc; if((dr||dc)&&vr>=0&&vr<N&&vc>=0&&vc<N&&H[vr][vc]===H[r][c]-1)low=true; } if(!low)S[r][c]=0; }
+  if(hillCheck(T).bad.length){ for(r=0;r<N;r++)for(c=0;c<N;c++)S[r][c]=S0[r][c]; }
+  var walls={};
+  for(k=0;k<2;k++)for(i=0;i<castles[k].length;i++){ t=castles[k][i]; walls[t[0]+'_'+t[1]]={owner:k,broken:{N:false,S:false,E:false,W:false},captured:false}; }
+  return {grid:grid,castles:castles,walls:walls,presetFences:{},height:H,slope:S,bridge:{},hill:1,judge:{n:200,first:0}}; }   // 200手で決着しなければ判定(拠点の数→駒の価値→先手でない側)。first は対局開始時に手番で上書き(オンラインは常に0)
 const _lvOf=(v)=>({sparse:0,normal:1,dense:2}[v]??1);
 function genTerrain(seed,opts="normal",mapType="plain"){
   if(s3dDef(mapType)) return genTerrain3D(seed,opts,mapType);   // 新シナリオ(高低差あり)。既存マップはこの下の従来処理のまま
+  if(mapType==="hill") return genTerrainHill(seed,opts);      // 丘陵(毎回ランダムの高低差)
   let s=seed>>>0;
   const rnd=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};
   const rint=(n)=>Math.floor(rnd()*n);
@@ -1595,9 +1682,95 @@ function t3dJudge(walls,forts,board,hand,first){ var st=[0,0],mat=[0,0],k,s;
   if(mat[0]!==mat[1])return mat[0]>mat[1]?0:1;
   return first===0?1:0; }
 
+/* ===== 丘陵（2026-10-24 hill）：普通の対局用の、毎回ランダムに作る高低差マップ =====
+   丘(2〜3段)・台地(2段・周りは崖)・尾根と谷(尾根の切れ目の低い通り道)・坂(石段)。森と川の量は「森・川」の設定(少・普・多)どおり。
+   上半分(後手の陣)を作って点対称に写す＝両軍の地形は同じ（公平）。ルールは平地戦(城2つ・柵3つ・砦1つ)＋崖の規則(t3dStep/t3dUp)。
+   作った後、川以外の全マスから両軍の城4つへ歩いて行けるか(駒なし・坂と崖の規則どおり)を探索で確かめ、
+   行けないマスには坂を足す(足りなければ段を変える)。＝閉じ込められて出られない所は残らない・城どうしは必ずつながる。
+   クライアント本体・AI Worker・サーバー(gameLogic.js)の3か所に同じ文面で入れる（同じ seed/opts → 乱数列まで同じ地形）。 */
+function hillReach(T,tr,tc){ var H=T.height,G=T.grid,ok=[],q=[],r,c,h,dr,dc,a,b;
+  for(r=0;r<N;r++){ ok.push([]); for(c=0;c<N;c++)ok[r].push(0); }
+  ok[tr][tc]=1; q.push(tr*N+tc);
+  for(h=0;h<q.length;h++){ r=(q[h]/N)|0; c=q[h]-r*N;
+    for(dr=-1;dr<=1;dr++)for(dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; a=r+dr; b=c+dc; if(a<0||a>=N||b<0||b>=N)continue; if(ok[a][b]||G[a][b]===TERRAIN.RIVER)continue;
+      if(t3dStep(T,a,b,r,c,false)){ ok[a][b]=1; q.push(a*N+b); } } }
+  return ok; }
+// 地形の確かめ：bad=城のどれかへ歩いて行けないマス(川以外)。ok[r][c]=1 ならそのマスから城4つすべてへ行ける
+function hillCheck(T){ var cs=T.castles[0].concat(T.castles[1]), ok=[], r,c,i,R,bad=[];
+  for(r=0;r<N;r++){ ok.push([]); for(c=0;c<N;c++)ok[r].push(1); }
+  for(i=0;i<cs.length;i++){ R=hillReach(T,cs[i][0],cs[i][1]); for(r=0;r<N;r++)for(c=0;c<N;c++){ if(!R[r][c])ok[r][c]=0; } }
+  for(r=0;r<N;r++)for(c=0;c<N;c++){ if(T.grid[r][c]===TERRAIN.RIVER)continue; if(!ok[r][c])bad.push([r,c]); }
+  return {bad:bad,ok:ok}; }
+function genTerrainHill(seed,opts){
+  var s=seed>>>0; var rnd=function(){ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; var rint=function(n){ return Math.floor(rnd()*n); };
+  var lvOf=function(v){ return v==='sparse'?0:(v==='dense'?2:1); };
+  var fLv=lvOf(typeof opts==='string'?opts:(opts&&opts.forest)), rLv=lvOf(typeof opts==='string'?opts:(opts&&opts.river));
+  var M=MIDDLE_ROW, grid=[], H=[], S=[], r, c, i, k, dr, dc, t;
+  for(r=0;r<N;r++){ grid.push([]); H.push([]); S.push([]); for(c=0;c<N;c++){ grid[r].push(TERRAIN.PLAIN); H[r].push(0); S[r].push(0); } }
+  var up=function(r,c,v){ if(r<0||r>=M||c<0||c>=N)return; if(v>H[r][c]){ H[r][c]=v; H[N-1-r][N-1-c]=v; } };   // 上半分に盛って点対称に写す
+  var setH=function(r,c,v){ H[r][c]=v; H[N-1-r][N-1-c]=v; };
+  var setS=function(r,c){ S[r][c]=1; S[N-1-r][N-1-c]=1; };
+  // 1) 川：中央の行。中央の筋＋左右対称の組で 3/5/7 本
+  var want=[3,5,7][rLv], cols=[0,1,2,3,4]; grid[M][M]=TERRAIN.RIVER;
+  for(i=cols.length-1;i>0;i--){ k=rint(i+1); t=cols[i]; cols[i]=cols[k]; cols[k]=t; }
+  for(i=0;i<(want-1)/2;i++){ grid[M][cols[i]]=TERRAIN.RIVER; grid[M][N-1-cols[i]]=TERRAIN.RIVER; }
+  // 2) 城：後手は奥2行に2つ(5筋以上離す)。先手は点対称の位置
+  var castles={0:[],1:[]}, tries=0, cr, cc, okc;
+  while(castles[1].length<2&&tries<600){ tries++; cr=rnd()<0.5?0:1; cc=rint(N); okc=true;
+    for(i=0;i<castles[1].length;i++){ if(Math.abs(castles[1][i][1]-cc)<5)okc=false; }
+    if(okc)castles[1].push([cr,cc]); }
+  if(castles[1].length<2)castles[1]=[[0,1],[0,N-2]];
+  for(i=0;i<2;i++)castles[0].push([N-1-castles[1][i][0],N-1-castles[1][i][1]]);
+  // 3) 丘と台地：2〜3つ。丘＝段々(頂3段/丘2段)、片側が崖になることがある。台地＝2段の平らな高台(周りは崖)
+  var nh=2+(rnd()<0.5?1:0), kind, hr, hc, R2, cut, d, w, top, left;
+  var raised=function(){ var n=0; for(var r3=0;r3<M;r3++)for(var c3=0;c3<N;c3++){ if(H[r3][c3])n++; } return n; };
+  for(k=0;k<nh;k++){ if(k>0&&raised()>=20)break;   // 高い所は陣の4割ほどまで（盤が段だらけにならないように）
+    kind=rnd(); hr=1+rint(3); hc=rint(N);
+    if(kind<0.7){ R2=kind<0.3?2:1; cut=rnd()<0.5?rint(4):-1;
+      for(dr=-R2;dr<=R2;dr++)for(dc=-R2;dc<=R2;dc++){ d=Math.max(Math.abs(dr),Math.abs(dc));
+        if(d===R2&&cut>=0&&((cut===0&&dr===-R2)||(cut===1&&dr===R2)||(cut===2&&dc===-R2)||(cut===3&&dc===R2)))continue;
+        up(hr+dr,hc+dc,R2+1-d); } }
+    else { w=3+rint(2); top=1+rint(2); left=rint(N-w+1);
+      for(r=top;r<top+2;r++)for(c=left;c<left+w;c++)up(r,c,2); } }
+  // 4) 尾根と谷：1段の尾根の切れ目が0段の谷道。谷の両脇は2段の崖
+  if(rnd()<0.6){ var rr=2+rint(2), L=5+rint(3), a0=rint(N-L+1), g=a0+1+rint(L-2);
+    for(c=a0;c<a0+L;c++)up(rr,c,1);
+    setH(rr,g,0); up(rr,g-1,2); up(rr,g+1,2); }
+  // 5) 石段を2〜3か所足す（高い側のマスで、1段下の隣があるところ）
+  { var ns=2+rint(2), cand=[];
+    for(r=0;r<M;r++)for(c=0;c<N;c++){ if(!H[r][c])continue; var lw=false; for(dr=-1;dr<=1;dr++)for(dc=-1;dc<=1;dc++){ var r2=r+dr, c2=c+dc; if((dr||dc)&&r2>=0&&r2<N&&c2>=0&&c2<N&&H[r2][c2]===H[r][c]-1)lw=true; } if(lw)cand.push([r,c]); }
+    for(i=0;i<ns&&cand.length;i++){ k=rint(cand.length); setS(cand[k][0],cand[k][1]); cand.splice(k,1); } }
+  for(i=0;i<2;i++)for(k=0;k<2;k++){ t=castles[k][i]; grid[t[0]][t[1]]=TERRAIN.CASTLE; }
+  // 6) 森：後手の陣(5行)に 3/6/9 マス(城の周りは避ける)。先手は点対称
+  { var per=[3,6,9][fLv], cells=[], near;
+    for(r=0;r<M;r++)for(c=0;c<N;c++){ if(grid[r][c]!==TERRAIN.PLAIN)continue; near=false;
+      for(k=0;k<2;k++)for(i=0;i<2;i++){ t=castles[k][i]; if(Math.abs(t[0]-r)<=1&&Math.abs(t[1]-c)<=1)near=true; }
+      if(!near)cells.push([r,c]); }
+    for(i=cells.length-1;i>0;i--){ k=rint(i+1); t=cells[i]; cells[i]=cells[k]; cells[k]=t; }
+    for(i=0;i<per&&i<cells.length;i++){ t=cells[i]; grid[t[0]][t[1]]=TERRAIN.FOREST; grid[N-1-t[0]][N-1-t[1]]=TERRAIN.FOREST; } }
+  // 7) つながりの確かめと手直し：行けないマスに坂を足す（坂は高い側のマス＝石段が見える）。足りなければ段を1つ変える
+  var T={grid:grid,castles:castles,height:H,slope:S};
+  var cs4=castles[0].concat(castles[1]);
+  for(var it=0;it<600;it++){ var fs=[], fh=[], u, ur, uc, hu, vr, vc, hv, R=null, x, any=false;
+    for(x=0;x<4&&!any;x++){ R=hillReach(T,cs4[x][0],cs4[x][1]);   // 城ごとに：その城へ行けないマスを、行けるマスとの境目で直す
+      for(ur=0;ur<N;ur++)for(uc=0;uc<N;uc++){ if(R[ur][uc]||grid[ur][uc]===TERRAIN.RIVER)continue; any=true; hu=H[ur][uc];
+        for(dr=-1;dr<=1;dr++)for(dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; vr=ur+dr; vc=uc+dc; if(vr<0||vr>=N||vc<0||vc>=N)continue; if(!R[vr][vc])continue; hv=H[vr][vc];
+          if(hv===hu-1)fs.push([ur,uc]); else if(hv<hu-1)fh.push([ur,uc,hu-1]); else if(hv>hu+1)fh.push([ur,uc,hu+1]); } } }
+    if(!any)break;
+    if(fs.length){ u=fs[rint(fs.length)]; setS(u[0],u[1]); }
+    else if(fh.length){ u=fh[rint(fh.length)]; setH(u[0],u[1],u[2]); }
+    else { for(r=0;r<N;r++)for(c=0;c<N;c++){ if(H[r][c]>0)H[r][c]--; } } }
+  // 坂のマスでも下りの隣が無いもの（段を変えた跡）は坂の印を外す
+  var S0=S.map(function(row){ return row.slice(); });
+  for(r=0;r<N;r++)for(c=0;c<N;c++){ if(!S[r][c])continue; var low=false; for(dr=-1;dr<=1;dr++)for(dc=-1;dc<=1;dc++){ vr=r+dr; vc=c+dc; if((dr||dc)&&vr>=0&&vr<N&&vc>=0&&vc<N&&H[vr][vc]===H[r][c]-1)low=true; } if(!low)S[r][c]=0; }
+  if(hillCheck(T).bad.length){ for(r=0;r<N;r++)for(c=0;c<N;c++)S[r][c]=S0[r][c]; }
+  var walls={};
+  for(k=0;k<2;k++)for(i=0;i<castles[k].length;i++){ t=castles[k][i]; walls[t[0]+'_'+t[1]]={owner:k,broken:{N:false,S:false,E:false,W:false},captured:false}; }
+  return {grid:grid,castles:castles,walls:walls,presetFences:{},height:H,slope:S,bridge:{},hill:1,judge:{n:200,first:0}}; }   // 200手で決着しなければ判定(拠点の数→駒の価値→先手でない側)。first は対局開始時に手番で上書き(オンラインは常に0)
 const _lvOf=(v)=>({sparse:0,normal:1,dense:2}[v]??1);
 function genTerrain(seed,opts="normal",mapType="plain"){
   if(s3dDef(mapType)) return genTerrain3D(seed,opts,mapType);   // 新シナリオ(高低差あり)。既存マップはこの下の従来処理のまま
+  if(mapType==="hill") return genTerrainHill(seed,opts);      // 丘陵(毎回ランダムの高低差)
   let s=seed>>>0;
   const rnd=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};
   const rint=(n)=>Math.floor(rnd()*n);
@@ -2814,7 +2987,7 @@ function squareLabel(r,c){ return fileNum(c)+rankKanji(r); }
 function formatMove(rec,vs){ if(!rec)return ""; const mark=rec.player===0?"▲":"△"; const masked=vs!=null&&rec.player!==vs&&rec.hidden; if(masked){ const f=rec.from?squareLabel(rec.from[0],rec.from[1]):""; return mark+(f?f+"から":"")+"？"; } const sq=squareLabel(rec.to[0],rec.to[1]); const lb=(PIECE[rec.type]&&PIECE[rec.type].label)||"?"; return mark+sq+lb+(rec.promote?"成":"")+(rec.drop?"打":"")+(rec.flood?"・水攻め":""); }
 function snap(){ return JSON.stringify({board:state.board,walls:state.walls,fences:state.fences,forts:state.forts,hand:state.hand,turn:state.turn,winner:state.winner,phase:state.phase,lastMove:state.lastMove,revealForts:state.revealForts||{},burned:state.burned||{},huangFired:!!state.huangFired,flooded:state.flooded||null,hist:(state.history||[]).length}); }
 // 火計で焼けた森(state.burned)を反映して地形を作り直す（待った/再同期で森を正しく復元）
-function rebuildTerrainWithBurns(){ terrain = isScenario()? buildScenarioTerrain(scenario) : genTerrain(seed,density,mapType);
+function rebuildTerrainWithBurns(){ const _j0=(terrain&&terrain.judge)?terrain.judge.first:null; terrain = isScenario()? buildScenarioTerrain(scenario) : genTerrain(seed,density,mapType); if(isHill()&&_j0!=null&&terrain.judge)terrain.judge.first=_j0;
   if(state&&state.burned)for(const k in state.burned){ const a=k.split('_'); const r=+a[0],c=+a[1]; if(terrain.grid[r][c]===TERRAIN.FOREST)terrain.grid[r][c]=TERRAIN.PLAIN; }
   t3dApplyFlood(state&&state.flooded); }
 function pushUndo(){ if(!state)return; undoStack.push(snap()); if(undoStack.length>40)undoStack.shift(); }
@@ -2830,9 +3003,10 @@ function setSide(s){ ME=s; OPP=1-s; }
 let reserve=[];                       // 選んだ駒（type[]）
 let trayPick=null;                    // 配置中に選択中のアイテム
 const FENCE_MAX=3;
-let mapType='plain';                  // 'plain' | 'siege'(攻城戦) | 'mountain'(山)
+let mapType='plain';                  // 'plain' | 'siege'(攻城戦) | 'mountain'(山) | 'hill'(丘陵＝毎回ランダムの高低差・ルールは平地戦＋崖)
 const isSiege=()=>mapType==='siege';
 const isMountain=()=>mapType==='mountain';
+const isHill=()=>mapType==='hill';
 const FORT_MAX=()=> isS3D()? s3dSide(ME).forts : isSiege()? (isAttacker(ME)?3:1) : (isMountain()||isScenario())?3 : 1;   // 攻城戦：攻め=砦3、守り=砦1(任意)。山・シナリオ=砦3
 const mtFenceRows=(s)=> fenceRows(s);                                  // 山:王が隠れる砦を置ける最深3行(=1〜3列)
 const fortsInFenceRows=(s)=> fortsArr(s).filter(([r])=>mtFenceRows(s).includes(r)).length;
@@ -3208,10 +3382,25 @@ function placeAI(){ const army=pickArmyForTerrain(terrain,OPP,handLimit); const 
     const kf=forts.find(([r,c])=>terrain.grid[r][c]===TERRAIN.FOREST)||forts[0];        // 王は隠せる森の砦を優先
     plan.king=kf.slice(); plan.pieces=plan.pieces.filter(p=>!(p.r===kf[0]&&p.c===kf[1]));
   }
+  if(isHill()) hillGuardKing(plan,OPP,forts);   // 丘陵だけ：王への飛角の筋が相手陣まで開いていたら、王の隣に駒を寄せて塞ぐ
   const [kr,kc]=plan.king; state.board[kr][kc]={type:"K",player:OPP,promoted:false,hidden:isFortKing(OPP)?(terrain.grid[kr][kc]===TERRAIN.FOREST):true};
   for(const p of plan.pieces){ if(forts.some(f=>f[0]===p.r&&f[1]===p.c))continue; const g=terrain.grid[p.r][p.c]; state.board[p.r][p.c]={type:p.type,player:OPP,promoted:false,hidden:g===TERRAIN.FOREST}; }
   for(const k of (plan.fences||[])) state.fences[k]=OPP; state.forts[OPP]=forts; }
 
+/* 丘陵の配置AIの手直し：王(城)から8方向の筋に、相手陣のマスから飛/角が利くなら（初手で王を取られる形）、王の隣のマスへ歩・銀・金などを移して塞ぐ */
+function hillGuardKing(plan,side,forts){ if(!plan||!plan.king)return; const [kr,kc]=plan.king; const opp=1-side, oppHome=homeRows(opp), home=homeRows(side);
+  const key=(r,c)=>r+'_'+c; const fen={}; for(const k of (plan.fences||[]))fen[k]=side;
+  const build=()=>{ const b=emptyBoard(); b[kr][kc]={type:'K',player:side,promoted:false,hidden:false}; for(const p of plan.pieces)b[p.r][p.c]={type:p.type,player:side,promoted:false,hidden:false}; return b; };
+  const fortSet=new Set((forts||[]).map(f=>key(f[0],f[1])));
+  const DIRS=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+  for(const [dr,dc] of DIRS){ const t=(dr&&dc)?'B':'R'; let b=build(), open=false;
+    for(let k=2;k<N;k++){ const r=kr+dr*k, c=kc+dc*k; if(r<0||r>=N||c<0||c>=N)break; if(b[r][c])break; if(!oppHome.includes(r))continue;
+      const pr={type:t,player:opp,promoted:false,hidden:false}; b[r][c]=pr; const mv=genMoves(b,terrain,r,c,pr,fen,{}); b[r][c]=null; if(mv.some(m=>m.r===kr&&m.c===kc)){ open=true; break; } }
+    if(!open)continue;
+    const br=kr+dr, bc=kc+dc; if(br<0||br>=N||bc<0||bc>=N||!home.includes(br))continue; const g=terrain.grid[br][bc];
+    if(g===TERRAIN.RIVER||g===TERRAIN.CASTLE||b[br][bc]||fen[key(br,bc)]!==undefined||fortSet.has(key(br,bc)))continue;
+    let best=-1,bs=-1e9; plan.pieces.forEach((p,i)=>{ const pri={P:5,S:4,G:4,N:2,L:1}[p.type]; if(pri===undefined)return; if(Math.max(Math.abs(p.r-kr),Math.abs(p.c-kc))<=1)return; const sc=pri*10+Math.max(Math.abs(p.r-kr),Math.abs(p.c-kc)); if(sc>bs){ bs=sc; best=i; } });
+    if(best>=0){ plan.pieces[best].r=br; plan.pieces[best].c=bc; } } }
 function startGame(){ if(!state.kingPlaced){ setMsg(isFortKing(ME)?"先に砦を3つ置き、王を砦のどれかの上に置いてください。":isScenario()?"先に王を七〜十一段に置いてください。":"先に王を城に置いてください。"); return; }
   if(!allPlaced()){ var _msg2;
     if(isFortKing(ME)&&fortsArr(ME).length===3&&fortsInFenceRows(ME)<2) _msg2="砦は2つを自陣の最深3行に置いてください（森に隠せます）。";
@@ -3222,6 +3411,7 @@ function startGame(){ if(!state.kingPlaced){ setMsg(isFortKing(ME)?"先に砦を
   if(isScenario()) placeScenarioAI(); else placeAI();
   state.walls=JSON.parse(JSON.stringify(terrain.walls)); state.hand={0:[],1:[]};
   state.phase="play"; state.turn=isS3D()?s3dDef(mapType).first:(isScenario()&&scenario.firstMoveSide!=null)?scenario.firstMoveSide:(isScenario()?ME:(isSiege()?0:(humanFirst?ME:OPP))); state.winner=null; state.selected=null; state.legal=[]; state.dropType=null; state.lastMove=null; state.revealForts={}; state.huangFired=false;
+  if(isHill()&&terrain&&terrain.judge)terrain.judge.first=state.turn;   // 丘陵：判定の最後の決め手(先手でない側)は実際の手番で
   if(isMountain()||isSiege()||isS3D())ensureFortVisible();   // 砦が全部森でも相手から1つは見えるように開示（陥落で次が見える）
   trayPick=null; updateCastleColors(); syncScene(); buildStructures(); renderHUD();
   setMsg(state.turn===ME?"対局開始。あなた（紺）の手番。":"対局開始。敵軍（朱）が先に動く…");
@@ -3548,6 +3738,11 @@ function mapRules(){
     '【守り】城は全周を柵で密閉。王は城の上に。砦も1つ置ける。',
     '柵は相手の飛・角・香（ロケット）を止める＝歩兵駒は通る。',
     '相手（攻め）の王取り、または攻めの全砦を陥落させれば勝ち。' ]};
+  if(isHill()) return {t:'丘陵', c:'#c9b46a', l:[
+    '平地戦と同じ：駒を合計Lvぶん選び自陣5行に配置。王は自陣の城へ。陣地冊は最深3行に3つ。砦1つ。',
+    '地形は毎回ランダム（両軍で同じ形＝点対称）。丘・台地・尾根と谷・石段。森と川の量は「森・川」で変わる。',
+    '高低差：点の数＝段。上りは1手で1段だけ・上ったマスで止まる（飛角香も）。2段以上の崖は通れない。下りは坂（石段のマス）だけ。ただし1段下の敵駒は取れる（逆落とし）。桂は着地のマスとの段差で判定。',
+    '敵城は駒で入った瞬間に制圧。相手の王を取る、または相手の拠点（城・砦）を全て奪えば勝ち。200手で決着しなければ判定（拠点の数→駒の価値の合計→先手でない側の勝ち）。' ]};
   return {t:'平地戦', c:'#9ec0ff', l:[
     '使う駒を合計Lvぶん選び自陣5行に自由配置。王は自陣の城へ。',
     '川は歩(と・成桂)が渡れ、桂は飛び越えるのみ。森は伏兵（隠れる）。陣地冊は最深3行に3つ。',
@@ -3572,9 +3767,10 @@ function renderHUD(){ const panel=document.getElementById('panel'); panel.innerH
     if(!online) nameRow();
     const rmap=srow('マップ');
     const _leave3=()=>{ if(isS3D()){ handLimit=20; reserve=[]; } };
-    btn(rmap,'平地戦',!isSiege()&&!isMountain()&&!isScenario()&&!isS3D(),()=>{ if(mapType!=='plain'){ _leave3(); mapType='plain'; setSide(0); newTerrain(false); } enterArmy(); });
+    btn(rmap,'平地戦',!isSiege()&&!isMountain()&&!isHill()&&!isScenario()&&!isS3D(),()=>{ if(mapType!=='plain'){ _leave3(); mapType='plain'; setSide(0); newTerrain(false); } enterArmy(); });
     btn(rmap,'攻城戦',isSiege(),()=>{ if(mapType!=='siege'){ _leave3(); mapType='siege'; setSide(0); newTerrain(false); } enterArmy(); });
     btn(rmap,'山',isMountain(),()=>{ if(mapType!=='mountain'){ _leave3(); mapType='mountain'; setSide(0); newTerrain(false); } enterArmy(); });
+    btn(rmap,'丘陵',isHill(),()=>{ if(mapType!=='hill'){ _leave3(); mapType='hill'; setSide(0); newTerrain(false); } enterArmy(); });
     btn(rmap,'シナリオ',isScenario()||isS3D(),()=>{ if(isScenario()||isS3D())return; mapType='scenario'; loadScenario(SCENARIOS.koukin); });
     if(isS3D()){ renderS3DArmy(srow,btn,aiRow,el,powerRow,acts); }
     else if(isScenario()){
@@ -3783,13 +3979,13 @@ function applyRemote(m){ if(!state||state.phase!=='play')return; netPush(); if(m
 try{ flushTrainBacklog(); }catch(_){}
 document.getElementById('olHost').onclick=srvHost;
 document.getElementById('olJoin').onclick=srvJoin;
-(function(){ const mp=document.getElementById('olMapPlain'),ms=document.getElementById('olMapSiege'),mm=document.getElementById('olMapMountain'),rr=document.getElementById('olRoleRow'),ra=document.getElementById('olRoleAtk'),rd=document.getElementById('olRoleDef');
-  function setMap(s){ mapType=s; mp.className='btn'+(s==='plain'?' on':''); ms.className='btn'+(s==='siege'?' on':''); if(mm)mm.className='btn'+(s==='mountain'?' on':''); rr.style.display=(s==='siege')?'flex':'none'; }
+(function(){ const mp=document.getElementById('olMapPlain'),ms=document.getElementById('olMapSiege'),mm=document.getElementById('olMapMountain'),mh=document.getElementById('olMapHill'),rr=document.getElementById('olRoleRow'),ra=document.getElementById('olRoleAtk'),rd=document.getElementById('olRoleDef');
+  function setMap(s){ mapType=s; mp.className='btn'+(s==='plain'?' on':''); ms.className='btn'+(s==='siege'?' on':''); if(mm)mm.className='btn'+(s==='mountain'?' on':''); if(mh)mh.className='btn'+(s==='hill'?' on':''); rr.style.display=(s==='siege')?'flex':'none'; }
   function setRole(atk){ olAttack=atk; ra.className='btn'+(atk?' on':''); rd.className='btn'+(!atk?' on':''); }
   var lvVals=[10,20,30,40], lvBtns=lvVals.map(function(v){return document.getElementById('olLv'+v);});
   function setLv(v){ handLimit=v; lvBtns.forEach(function(b,i){ if(b)b.className='btn'+(lvVals[i]===v?' on':''); }); }   // ホストが部屋作成前に合計Lvを選ぶ（create時に送信）
   lvVals.forEach(function(v,i){ if(lvBtns[i])lvBtns[i].onclick=function(){ setLv(v); }; });
-  if(mp){ mp.onclick=()=>setMap('plain'); ms.onclick=()=>setMap('siege'); if(mm)mm.onclick=()=>setMap('mountain'); ra.onclick=()=>setRole(true); rd.onclick=()=>setRole(false); } })();
+  if(mp){ mp.onclick=()=>setMap('plain'); ms.onclick=()=>setMap('siege'); if(mm)mm.onclick=()=>setMap('mountain'); if(mh)mh.onclick=()=>setMap('hill'); ra.onclick=()=>setRole(true); rd.onclick=()=>setRole(false); } })();
 window.__ol={hostRoom:hostRoom,joinRoom:joinRoom,get state(){return state;},get ME(){return ME;},dbg:function(){return{ME:ME,online:online,phase:state&&state.phase,turn:state&&state.turn,connOpen:!!(conn&&conn.open)};},drop:function(){try{conn&&conn.close();}catch(e){}},ensure:function(){srvReconnect();},host:function(){srvHost();},join:function(){srvJoin();},send:function(o){wsend(o);},wsRS:function(){return ws?ws.readyState:-1;},code:function(){return roomCode;},rematch:function(){wsend({type:'rematch'});},reqtb:function(){nsend({t:'tbreq'});},chat:function(t){sendChatMsg(t);},setName:function(x){myName=x;},info:function(){return{oppName:oppName,netUndo:netUndo.length,chat:chatLog.length,myName:myName};}};
 window.__dropTest=function(){ if(!state||state.phase!=='play')return 'notplay'; state.hand[ME].push('G'); for(let r=0;r<N;r++)for(let c=0;c<N;c++){ if(canDropHere(ME,r,c)){ dropPiece(ME,'G',r,c); return {cell:[r,c],placed:!!(state.board[r][c]&&state.board[r][c].type==='G')}; } } return 'nocell'; };
 window.__takeback=function(){ takeback(); return undoStack.length; };
@@ -3855,15 +4051,15 @@ document.getElementById('loading').style.display='none';
 try{ pm3dInit(); }catch(e){}
 (function(){ const bS=document.getElementById('olMapS3D'), sel=document.getElementById('olS3D'), rowS=document.getElementById('olS3DRow'), rowSide=document.getElementById('olS3DSideRow'),
     b0=document.getElementById('olS3DSide0'), b1=document.getElementById('olS3DSide1'), lvRow=document.getElementById('olLvRow'),
-    mp=document.getElementById('olMapPlain'), ms=document.getElementById('olMapSiege'), mm=document.getElementById('olMapMountain'), rr=document.getElementById('olRoleRow');
+    mp=document.getElementById('olMapPlain'), ms=document.getElementById('olMapSiege'), mm=document.getElementById('olMapMountain'), mh=document.getElementById('olMapHill'), rr=document.getElementById('olRoleRow');
   if(!bS||!sel)return;
   for(const mk in S3D_MAPS){ const o=document.createElement('option'); o.value=mk; o.textContent=S3D_MAPS[mk].name; sel.appendChild(o); }
   function upd(){ const on=isS3D(); bS.className='btn'+(on?' on':''); rowS.style.display=on?'flex':'none'; rowSide.style.display=on?'flex':'none'; if(lvRow)lvRow.style.display=on?'none':'flex';
     if(on){ const d=s3dDef(mapType); sel.value=mapType; b0.textContent=d.sides[0].name+(d.first===0?'（先手）':''); b1.textContent=d.sides[1].name+(d.first===1?'（先手）':''); b0.className='btn'+(olS3DSide===0?' on':''); b1.className='btn'+(olS3DSide===1?' on':''); } }
-  bS.onclick=()=>{ mapType=sel.value||'s3d_koukin'; if(mp)mp.className='btn'; if(ms)ms.className='btn'; if(mm)mm.className='btn'; if(rr)rr.style.display='none'; upd(); };
+  bS.onclick=()=>{ mapType=sel.value||'s3d_koukin'; if(mp)mp.className='btn'; if(ms)ms.className='btn'; if(mm)mm.className='btn'; if(mh)mh.className='btn'; if(rr)rr.style.display='none'; upd(); };
   sel.onchange=()=>{ mapType=sel.value; upd(); };
   b0.onclick=()=>{ olS3DSide=0; upd(); }; b1.onclick=()=>{ olS3DSide=1; upd(); };
-  for(const b of [mp,ms,mm]) if(b){ const f=b.onclick; b.onclick=function(){ if(f)f.call(b); upd(); }; }
+  for(const b of [mp,ms,mm,mh]) if(b){ const f=b.onclick; b.onclick=function(){ if(f)f.call(b); upd(); }; }
   { const to=document.getElementById('tOnline'); if(to){ const f0=to.onclick; to.onclick=function(){ if(f0)f0.call(to); upd(); }; } }
   window.__olS3DUpd=upd; })();
 // ---- 検証用フック（ブラウザ試験）：盤の状態・マスの画面座標・自動対局（あなた側もCPU） ----
